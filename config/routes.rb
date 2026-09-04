@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :hotels
   devise_for :users
   resources :users
   root "pages#home"

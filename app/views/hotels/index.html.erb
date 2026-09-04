@@ -1,0 +1,38 @@
+<div class="bg-gray-200 h-30 mb-8">
+  <%# 後で検索系のinput_fieldなどを作成 %>
+</div>
+
+<div class="px-8 mb-60">
+  <div class="mb-4">
+    <h2 class="text-xl"><span class="font-bold "><%= @hotels.count %></span> 件が見つかりました。</h2>
+  </div>
+  <div class="grid grid-cols-3 gap-8">
+    <% @hotels.each do |hotel| %>
+      <div class="bg-amber-50 rounded-3xl pb-8 overflow-hidden">
+        <div class="mb-6">
+          <% if hotel.avatar.attached? %>
+            <%= image_tag hotel.avatar %>
+          <% else %>
+            <%= image_tag "default_hotel_visual.jpg" %>
+          <% end %>
+        </div>
+        <div class="px-6">
+          <p class="text-2xl"><%= hotel.name %></p>
+          <p class="mb-2"><%= hotel.address %></p>
+          <div class="flex gap-1 mb-6">
+            <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+            <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+            <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+            <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+            <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+          </div>
+          <p class="mb-8"><%= hotel.description %></p>
+          <p class="mb-2 text-red-400 text-2xl">¥<%= hotel.price.to_fs(:delimited) %>~</p>
+          <div class="text-center">
+            <%= link_to "詳細はこちら", hotel, class: "bg-orange-500 text-white text-bold inline-block w-3/4 py-3 text-center rounded-lg mx-auto" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
