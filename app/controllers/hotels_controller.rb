@@ -4,9 +4,11 @@ class HotelsController < ApplicationController
   end
 
   def new
+    @hotel = Hotel.new
   end
 
   def create
+    
   end
 
   def show
