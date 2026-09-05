@@ -1,0 +1,10 @@
+ja:
+  activerecord:
+    attributes:
+      reservation:
+        check_in: "チェックイン"
+        check_out: "チェックアウト"
+        attendance: "人数"
+  date:
+    formats:
+      default: "%Y/%m/%d"

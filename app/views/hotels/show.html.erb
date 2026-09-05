@@ -1,4 +1,49 @@
-<div>
-  <h1 class="font-bold text-4xl">Hotels#show</h1>
-  <p>Find me in app/views/hotels/show.html.erb</p>
+<div class="bg-gray-200 h-30 mb-8">
+  <%# 後で検索系のinput_fieldなどを作成 %>
+</div>
+
+<div class="w-3/4 mx-auto mt-8 mb-30 max-w-[1500px] min-w-[1000px]">
+  <%= link_to "← 戻る", hotels_path, class: "text-blue-500 text-md" %>
+  <div class="flex gap-10">
+    <div class="w-1/2">
+      <% if current_user.avatar.attached? %>
+        <%= image_tag current_user.avatar, class: "object-contain" %>
+      <% else %>
+        <%= image_tag "default_hotel_visual.jpg", class: "object-contain" %>
+      <% end %>
+    </div>
+    <div class="bg-orange-50 w-1/2 p-5">
+      <div class="flex justify-between mt-5 mb-1">
+        <span class="text-2xl text-gray-500"><%= @hotel.name %></span>
+        <span class="text-2xl text-red-500">¥<%= @hotel.price.to_formatted_s(:delimited) %>~</span>
+      </div>
+      <p class="text-gray-500 mb-1.5"><%= @hotel.address %></p>
+      <div class="flex gap-2 mb-4">
+        <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+        <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+        <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+        <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+        <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+      </div>
+      <p class="text-gray-500"><%= @hotel.description %></p>
+      <%= form_with model: Reservation.new, url: reservations_confirm_path, data: {turbo: false} do |f| %>
+        <%= f.hidden_field :hotel_id, value: @hotel.id %>
+        <div class="bg-white flex gap-2 justify-center p-5 mb-3">
+          <div class="text-center flex-1 min-w-0">
+            <%= f.label :check_in, class: "font-bold text-sm text-gray-500" %>
+            <%= f.date_field :check_in, class: "border border-gray-300 p-3 w-full" %>
+          </div>
+          <div class="text-center flex-1 min-w-0">
+            <%= f.label :check_out, class: "font-bold text-sm text-gray-500" %>
+            <%= f.date_field :check_out, class: "border border-gray-300 p-3 w-full" %>
+          </div>
+          <div class="text-center flex-1 min-w-0">
+            <%= f.label :attendance, class: "font-bold text-sm text-gray-500" %>
+            <%= f.number_field :attendance, class: "border border-gray-300 p-3 w-full", placeholder: "0" %>
+          </div>
+        </div>
+        <%= f.submit "予約する", class: "bg-orange-300 cursor-pointer w-full p-4 text-white font-bold" %>
+      <% end %>
+    </div>
+  </div>
 </div>

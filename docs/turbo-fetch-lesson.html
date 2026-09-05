@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TurboとFetch通信の原理から学ぶ</title>
+  <style>
+    :root {
+      --ink: #192334;
+      --muted: #5f6d80;
+      --line: #dbe3ed;
+      --paper: #f7f9fc;
+      --card: #ffffff;
+      --blue: #2563eb;
+      --blue-soft: #eaf1ff;
+      --green: #11845b;
+      --green-soft: #e9f8f1;
+      --orange: #c76b19;
+      --orange-soft: #fff5e8;
+      --shadow: 0 18px 50px rgba(25, 35, 52, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.75;
+    }
+    a { color: var(--blue); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .12em .35em; border-radius: .35em; background: #eef2f7; color: #30435d; }
+    pre { overflow-x: auto; margin: 1rem 0 0; padding: 1rem 1.1rem; border: 1px solid #e2e8f0; border-radius: .8rem; background: #172235; color: #e8eef8; line-height: 1.6; font-size: .86rem; }
+    .shell { width: min(1040px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { margin: 28px 0 24px; padding: 38px 42px; border-radius: 1.5rem; background: linear-gradient(135deg, #172235 0%, #263b61 65%, #315d9f 100%); color: white; box-shadow: var(--shadow); }
+    .eyebrow { margin: 0 0 .5rem; color: #bcd2ff; font-weight: 700; letter-spacing: .08em; font-size: .78rem; }
+    h1, h2, h3 { line-height: 1.3; }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); }
+    h2 { margin: 0 0 1rem; font-size: 1.55rem; }
+    h3 { margin: 1.4rem 0 .55rem; font-size: 1.1rem; }
+    .hero p { max-width: 760px; margin: 1rem 0 0; color: #e1eaf8; }
+    .goal { display: inline-block; margin-top: 1.3rem; padding: .55rem .8rem; border: 1px solid rgba(255,255,255,.2); border-radius: .7rem; background: rgba(255,255,255,.1); }
+    section { margin: 24px 0; padding: 28px 32px; border: 1px solid var(--line); border-radius: 1.2rem; background: var(--card); box-shadow: var(--shadow); }
+    .lead { margin-top: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .mini-card { padding: 18px; border: 1px solid var(--line); border-radius: .9rem; background: #fbfcfe; }
+    .mini-card h3 { margin-top: 0; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 1.2rem 0; }
+    .flow span { display: grid; place-items: center; min-height: 74px; padding: 8px; border-radius: .7rem; background: var(--blue-soft); color: #1e438d; text-align: center; font-size: .9rem; font-weight: 700; }
+    .flow span { position: relative; }
+    .flow span:not(:last-child)::after { content: "→"; position: absolute; transform: translateX(calc(50% + 6px)); color: var(--blue); font-size: 1.3rem; }
+    .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 1rem; }
+    .compare article { padding: 18px; border-radius: .9rem; }
+    .normal { border: 1px solid #b7decf; background: var(--green-soft); }
+    .turbo { border: 1px solid #cbd9ed; background: var(--blue-soft); }
+    .warning { margin-top: 1rem; padding: 1rem 1.1rem; border-left: 5px solid var(--orange); border-radius: .7rem; background: var(--orange-soft); }
+    .mapping { display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px 20px; align-items: center; margin-top: 1rem; }
+    .mapping div { padding: .6rem .8rem; border-radius: .6rem; background: #f4f7fb; }
+    .tag { display: inline-block; margin-right: .3rem; padding: .18rem .5rem; border-radius: 999px; background: var(--blue-soft); color: #1e438d; font-size: .78rem; font-weight: 700; }
+    .timeline { counter-reset: step; padding: 0; list-style: none; }
+    .timeline li { position: relative; margin: .8rem 0; padding: .8rem .9rem .8rem 3.1rem; border: 1px solid var(--line); border-radius: .7rem; background: #fbfcfe; }
+    .timeline li::before { counter-increment: step; content: counter(step); position: absolute; left: .8rem; top: .75rem; display: grid; place-items: center; width: 1.55rem; height: 1.55rem; border-radius: 50%; background: var(--blue); color: white; font-weight: 700; }
+    .simulator { padding: 20px; border: 1px solid #cbd9ed; border-radius: .9rem; background: #fbfdff; }
+    .simulator button, .choice { cursor: pointer; padding: .55rem .85rem; border: 1px solid #b9c8dc; border-radius: .55rem; background: white; color: var(--ink); font: inherit; font-weight: 700; }
+    .simulator button:hover, .choice:hover { border-color: var(--blue); }
+    .simulator button.active { border-color: var(--blue); background: var(--blue); color: white; }
+    .simulation-output { min-height: 110px; margin-top: 1rem; padding: 1rem; border-radius: .7rem; background: #172235; color: #e8eef8; white-space: pre-line; }
+    .exercise { margin-top: 18px; padding: 20px; border: 1px solid #cbd9ed; border-left: 5px solid var(--blue); border-radius: .9rem; background: #fbfdff; }
+    .exercise h3 { margin-top: 0; }
+    .choice { margin: .25rem .3rem .25rem 0; font-weight: 500; }
+    .feedback { min-height: 1.8em; margin: .8rem 0 0; font-weight: 700; }
+    .feedback.ok { color: var(--green); }
+    .feedback.ng { color: var(--orange); }
+    .answer { display: none; margin-top: .8rem; padding: .8rem 1rem; border-radius: .6rem; background: var(--green-soft); color: #176344; }
+    .answer.open { display: block; }
+    .sources { color: var(--muted); font-size: .9rem; }
+    footer { padding: 12px 0 40px; color: var(--muted); text-align: center; font-size: .85rem; }
+    @media (max-width: 700px) {
+      section { padding: 22px 18px; }
+      .hero { padding: 28px 22px; }
+      .grid, .compare, .mapping { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow span:not(:last-child)::after { content: "↓"; transform: translate(-50%, 25px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">POTEPAN / RAILS / HOTWIRE</p>
+      <h1>TurboとFetch通信を<br>原理から学ぶ</h1>
+      <p>「Networkにfetchと出る」「Railsログでは200なのに画面が変わらない」という現象を、ブラウザ・JavaScript・Railsサーバーの役割に分けて説明できるようになる。</p>
+      <div class="goal">今日のゴール：Turboを切る理由を、コードではなく通信の流れで説明できる</div>
+    </header>
+
+    <section>
+      <h2>1. まず、画面が変わる仕組み</h2>
+      <p class="lead">Webアプリでは、クリックしただけでサーバーのデータが変わったり、別画面が表示されたりしているように見えます。実際には、ブラウザとサーバーがリクエストとレスポンスを交換しています。</p>
+      <div class="flow">
+        <span>ブラウザで操作</span>
+        <span>HTTPリクエスト</span>
+        <span>Railsが処理</span>
+        <span>レスポンス</span>
+        <span>画面を更新</span>
+      </div>
+      <div class="grid">
+        <div class="mini-card"><h3>ブラウザ</h3><p>HTMLを表示し、クリックやフォーム送信を開始する。画面を書き換える役割も持つ。</p></div>
+        <div class="mini-card"><h3>サーバー</h3><p>URL・HTTPメソッド・パラメータを受け取り、Controllerを動かしてHTMLなどを返す。</p></div>
+        <div class="mini-card"><h3>リクエスト</h3><p>「このURLへ、この方法で、このデータを送る」という依頼。POSTは登録・送信などで使う。</p></div>
+        <div class="mini-card"><h3>レスポンス</h3><p>サーバーからの返事。ステータスコード、ヘッダー、本文（HTMLなど）を含む。</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Fetchとは何か</h2>
+      <p><strong>Fetch API</strong>は、ブラウザ上のJavaScriptがネットワーク越しにリクエストを送り、レスポンスを受け取るための仕組みです。Fetchそのものは「画面遷移」ではなく、「通信」を担当します。</p>
+      <pre><code>fetch("/reservations/confirm", {
+  method: "POST",
+  body: formData
+})</code></pre>
+      <div class="mapping">
+        <div><code>fetch(...)</code></div><div>JavaScriptから通信を開始する</div>
+        <div><code>method: "POST"</code></div><div>データを送信するリクエストにする</div>
+        <div><code>Response</code></div><div>サーバーから返ってきたステータスや本文を表す</div>
+        <div><code>画面の更新</code></div><div>レスポンスをどう画面に反映するかは別途必要</div>
+      </div>
+      <div class="warning"><strong>重要：</strong>Fetchで通信が成功しても、画面が自動で別ページになるとは限りません。通信と画面更新は別の仕事です。</div>
+      <p class="sources">参考：<a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API" target="_blank" rel="noreferrer">MDN Fetch API</a></p>
+    </section>
+
+    <section>
+      <h2>3. Turboとは何か</h2>
+      <p><strong>Turbo</strong>は、Railsの画面遷移やフォーム送信を、JavaScriptで扱いやすくする仕組みです。Rails 7系ではHotwireの一部として利用されます。</p>
+      <p>Turboの中心的な機能である<strong>Turbo Drive</strong>は、リンククリックやフォーム送信を監視します。そして、通常のブラウザ任せの処理の代わりに、裏側でリクエストを送り、返ってきた内容を使ってページを更新します。</p>
+      <div class="compare">
+        <article class="normal">
+          <h3>Turboを使わない通常送信</h3>
+          <ol>
+            <li>フォームを送信する</li>
+            <li>ブラウザがページ全体をサーバーへ移動する</li>
+            <li>返ってきたHTMLを新しいページとして表示する</li>
+          </ol>
+        </article>
+        <article class="turbo">
+          <h3>Turboを使う送信</h3>
+          <ol>
+            <li>Turboがフォーム送信を受け取る</li>
+            <li>Fetch通信でサーバーへ送る</li>
+            <li>レスポンスの種類に応じて画面を更新する</li>
+          </ol>
+        </article>
+      </div>
+      <p class="sources">参考：<a href="https://turbo.hotwired.dev/handbook/drive" target="_blank" rel="noreferrer">Turbo Handbook: Navigate with Turbo Drive</a></p>
+    </section>
+
+    <section>
+      <h2>4. 今回の予約確認で起きたこと</h2>
+      <p>あなたのホテル詳細ページのフォームをクリックしたときの処理を、順番に並べます。</p>
+      <ol class="timeline">
+        <li><strong>ホテル詳細ページのフォーム</strong>で「予約する」を押す。</li>
+        <li><strong>Turboが送信を受け取る</strong>。通常のページ遷移を、Turboの処理に任せる。</li>
+        <li><strong>Fetch通信</strong>で<code>POST /reservations/confirm</code>を送る。</li>
+        <li><strong>Rails</strong>が<code>ReservationsController#confirm</code>を実行する。</li>
+        <li><strong>Railsログ</strong>に<code>as TURBO_STREAM</code>、<code>Completed 200 OK</code>が出る。</li>
+        <li><strong>レスポンス</strong>には確認ページの内容がある。しかし、POSTに対する200の通常renderでは、Turboは現在のURLにとどまる。</li>
+      </ol>
+      <pre><code>Started POST "/reservations/confirm"
+Processing by ReservationsController#confirm as TURBO_STREAM
+Rendering reservations/confirm.html.erb
+Completed 200 OK</code></pre>
+      <div class="warning"><strong>このログから分かること：</strong>Railsの処理とレスポンス生成は成功している。一方、画面遷移の成否は、ブラウザがそのレスポンスをどう扱ったかまで確認する必要がある。</div>
+    </section>
+
+    <section>
+      <h2>5. なぜ200なのに画面が変わらないのか</h2>
+      <p>Turbo Driveは、フォームのPOST送信後にサーバーが<strong>リダイレクト</strong>を返す流れを基本としています。POSTの処理結果を200で直接renderした場合、リロード時にPOSTが再送信される危険があるため、Turboは現在のURLにとどまります。</p>
+      <div class="grid">
+        <div class="mini-card"><h3>通常のHTMLを表示したい</h3><p>そのフォームだけTurboを無効にし、ブラウザの通常送信に任せる。返ってきた確認ページを新しいページとして表示する。</p></div>
+        <div class="mini-card"><h3>Turboで部分更新したい</h3><p><code>&lt;turbo-stream&gt;</code>など、Turboが理解できる形式のレスポンスを返し、指定した部分だけ更新する。</p></div>
+      </div>
+      <pre><code>&lt;%= form_with ..., data: { turbo: false } do |f| %&gt;</code></pre>
+      <p>上の指定は「このフォームではTurboによるFetch処理を使わない」という意味です。今回のように確認ページへ普通に移動したい場合に、仕組みを単純にできます。</p>
+      <p class="sources">参考：<a href="https://turbo.hotwired.dev/handbook/drive#redirecting-after-a-form-submission" target="_blank" rel="noreferrer">Turbo Handbook: Redirecting After a Form Submission</a> / <a href="https://turbo.hotwired.dev/handbook/drive#disabling-turbo-drive-on-specific-links-or-forms" target="_blank" rel="noreferrer">Disabling Turbo Drive</a></p>
+    </section>
+
+    <section>
+      <h2>6. ミニシミュレーター</h2>
+      <p class="lead">実際の通信は行いません。どの仕組みがどこまで担当するかを、ボタンで切り替えて確認します。</p>
+      <div class="simulator">
+        <button type="button" class="sim-mode active" data-mode="normal">Turboなし</button>
+        <button type="button" class="sim-mode" data-mode="turbo-redirect">Turbo + redirect</button>
+        <button type="button" class="sim-mode" data-mode="turbo-render">Turbo + 200 render</button>
+        <div class="simulation-output" id="simulation-output">送信方法：通常のHTMLフォーム
+リクエスト：POST /reservations/confirm
+レスポンス：200 HTML
+結果：ブラウザが確認ページへ移動する</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>7. 演習問題（全8問）</h2>
+      <p class="lead">まず自分の答えを考えてから、選択肢をクリックしてください。正解・不正解と理由が表示されます。</p>
+
+      <div class="exercise" data-answer="b">
+        <h3>演習1：Fetchの担当</h3>
+        <p>Fetch APIが直接担当するものはどれですか？</p>
+        <button class="choice" data-choice="a">HTMLの見た目を決める</button>
+        <button class="choice" data-choice="b">ネットワーク通信を開始する</button>
+        <button class="choice" data-choice="c">DBのテーブルを作る</button>
+        <p class="feedback"></p><div class="answer">Fetchはリクエストを送り、レスポンスを受け取る仕組みです。受け取った内容を画面に反映する処理は別の役割です。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>演習2：Turboの位置</h3>
+        <p>Turboは主にどこで動いて、フォーム送信を監視しますか？</p>
+        <button class="choice" data-choice="a">DBの中</button>
+        <button class="choice" data-choice="b">RailsのControllerの中だけ</button>
+        <button class="choice" data-choice="c">ブラウザ上のJavaScript</button>
+        <p class="feedback"></p><div class="answer">Turboはブラウザで動くJavaScriptの仕組みです。Rails側はTurboが送ったリクエストを通常のControllerで処理します。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>演習3：NetworkのType</h3>
+        <p>NetworkタブのTypeが<code>fetch</code>だったとき、最も直接的に分かることはどれですか？</p>
+        <button class="choice" data-choice="a">Fetch形式の通信として送られた</button>
+        <button class="choice" data-choice="b">DBへの保存が成功した</button>
+        <button class="choice" data-choice="c">ブラウザのURLが必ず変わった</button>
+        <p class="feedback"></p><div class="answer">Typeは通信の方法を示します。レスポンスの中身やDB保存の成否、画面更新の成否まではTypeだけでは分かりません。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>演習4：Railsログの読み方</h3>
+        <p><code>Completed 200 OK</code>から分かることはどれですか？</p>
+        <button class="choice" data-choice="a">ブラウザが必ず確認ページを表示した</button>
+        <button class="choice" data-choice="b">Railsがリクエストを処理し、成功ステータスを返した</button>
+        <button class="choice" data-choice="c">必ずDBに予約が保存された</button>
+        <p class="feedback"></p><div class="answer">200はHTTPレスポンスの成功ステータスです。画面反映やDB保存まで確認するには、レスポンス・画面・SQLログも見ます。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>演習5：as TURBO_STREAM</h3>
+        <p><code>Processing ... as TURBO_STREAM</code>の意味として近いものはどれですか？</p>
+        <button class="choice" data-choice="a">必ずTurbo Streamタグが返った</button>
+        <button class="choice" data-choice="b">Turboが無効になっている</button>
+        <button class="choice" data-choice="c">リクエストの形式としてTurbo Streamが要求された</button>
+        <p class="feedback"></p><div class="answer">RailsがリクエストをTurbo Stream形式として受け取った、という意味です。Controllerが実際にTurbo Streamタグを返しているかはResponse本文で確認します。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>演習6：POST後の200 render</h3>
+        <p>TurboフォームのPOSTに対して、redirectではなく200で通常のHTMLをrenderした場合の説明はどれですか？</p>
+        <button class="choice" data-choice="a">Turboは現在のURLにとどまることがある</button>
+        <button class="choice" data-choice="b">必ずcreateアクションが再実行される</button>
+        <button class="choice" data-choice="c">Railsがレスポンスを返せなくなる</button>
+        <p class="feedback"></p><div class="answer">POSTの再送信を避けるため、Turboは200の直接renderでは現在のURLにとどまります。今回の画面が変わらなかった現象とつながります。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>演習7：Turboを無効にする指定</h3>
+        <p>フォーム単位でTurbo Driveを無効にする指定はどれですか？</p>
+        <button class="choice" data-choice="a"><code>data: { fetch: false }</code></button>
+        <button class="choice" data-choice="b"><code>data: { turbo: false }</code></button>
+        <button class="choice" data-choice="c"><code>data: { rails: false }</code></button>
+        <p class="feedback"></p><div class="answer"><code>data-turbo="false"</code>をHTMLに付ける指定です。Railsのフォームヘルパーでは<code>data: { turbo: false }</code>と書けます。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>演習8：調査の順番</h3>
+        <p>画面が遷移しないとき、原因を絞る確認の順番として最もよいものはどれですか？</p>
+        <button class="choice" data-choice="a">いきなりControllerを書き換える</button>
+        <button class="choice" data-choice="b">見た目のCSSだけを確認する</button>
+        <button class="choice" data-choice="c">画面操作 → Network → Railsログ → Responseの順に照合する</button>
+        <p class="feedback"></p><div class="answer">ブラウザが何を送ったか、Railsがどう処理したか、何を返したか、ブラウザがどう反映したかを順番に分けると、推測で修正せずに済みます。</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>8. 自分のアプリで確認するチェックリスト</h2>
+      <ol>
+        <li>Networkで、Request URLが<code>/reservations/confirm</code>か確認する。</li>
+        <li>Request Methodが<code>POST</code>か、Form Dataに<code>reservation</code>があるか確認する。</li>
+        <li>Railsログで、どのController#actionが実行されたか確認する。</li>
+        <li><code>as TURBO_STREAM</code>か<code>as HTML</code>かを確認する。</li>
+        <li>Statusが200か、リダイレクトなら3xxかを確認する。</li>
+        <li>Response本文が普通のHTMLか、<code>&lt;turbo-stream&gt;</code>かを確認する。</li>
+        <li>「サーバーが成功した」と「ブラウザ画面が更新された」を別々の事実として記録する。</li>
+      </ol>
+      <div class="warning"><strong>説明できれば合格：</strong>「Turboがフォーム送信を受け取り、FetchでPOSTした。Railsは200を返したが、POST後の通常renderだったためTurboはURLを変えず、画面に確認ページを表示しなかった」のように、役割を分けて言える。</div>
+    </section>
+
+    <section>
+      <h2>参考資料</h2>
+      <p class="sources">内容確認に使った資料：</p>
+      <ul class="sources">
+        <li><a href="https://turbo.hotwired.dev/handbook/introduction" target="_blank" rel="noreferrer">Turbo Handbook: Introduction</a></li>
+        <li><a href="https://turbo.hotwired.dev/handbook/drive" target="_blank" rel="noreferrer">Turbo Handbook: Navigate with Turbo Drive</a></li>
+        <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API" target="_blank" rel="noreferrer">MDN: Fetch API</a></li>
+      </ul>
+    </section>
+  </main>
+  <footer>Potepan Rails学習用教材 / TurboとFetch通信</footer>
+
+  <script>
+    const simulationOutput = document.querySelector("#simulation-output")
+    const simulationTexts = {
+      normal: "送信方法：通常のHTMLフォーム\nリクエスト：POST /reservations/confirm\nレスポンス：200 HTML\n結果：ブラウザが確認ページへ移動する",
+      "turbo-redirect": "送信方法：TurboがFetchで処理\nリクエスト：POST /reservations/confirm\nレスポンス：303 redirect → GET /reservations/confirm\n結果：Turboが遷移先を取得し、確認ページを表示する",
+      "turbo-render": "送信方法：TurboがFetchで処理\nリクエスト：POST /reservations/confirm\nレスポンス：200 HTML（通常render）\n結果：POST後の再送信を避けるため、現在のURLにとどまることがある"
+    }
+    document.querySelectorAll(".sim-mode").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".sim-mode").forEach((item) => item.classList.remove("active"))
+        button.classList.add("active")
+        simulationOutput.textContent = simulationTexts[button.dataset.mode]
+      })
+    })
+
+    document.querySelectorAll(".exercise").forEach((exercise) => {
+      const feedback = exercise.querySelector(".feedback")
+      const answer = exercise.querySelector(".answer")
+      exercise.querySelectorAll(".choice").forEach((choice) => {
+        choice.addEventListener("click", () => {
+          const correct = choice.dataset.choice === exercise.dataset.answer
+          feedback.textContent = correct ? "正解です。理由も確認しましょう。" : "今回は不正解です。もう一度、原理から考えてみましょう。"
+          feedback.className = `feedback ${correct ? "ok" : "ng"}`
+          answer.classList.toggle("open", correct)
+        })
+      })
+    })
+  </script>
+</body>
+</html>
