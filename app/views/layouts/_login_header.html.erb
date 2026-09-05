@@ -1,0 +1,25 @@
+<header class="bg-slate-700 py-6 px-8 flex justify-between items-center">
+  <a href="/">
+    <img src="https://rails-02-sample.herokuapp.com/assets/common/logo.png" alt="サイトロゴ" class="w-48 h-auto">
+  </a>
+  <nav>
+    <div data-controller="dropdown relative">
+      <button data-action="click->dropdown#toggle" class="flex items-center cursor-pointer">
+        <% if current_user.avatar.attached? %>
+          <%= image_tag current_user.avatar %><span class="text-white"><%= current_user.name %></span>
+          <svg class="ml-2 h-4 w-4 text-white cursor-pointer"  width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <polyline points="6 9 12 15 18 9" /></svg>
+        <% else %>
+          <%= image_tag  "user_icon", class: "w-14 h-auto" %><span class="text-white"><%= current_user.name %></span>
+          <svg class="ml-2 h-4 w-4 text-white cursor-pointer"  width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <polyline points="6 9 12 15 18 9" /></svg>
+        <% end %>
+      </button>
+      <ul data-dropdown-target="menu" class="bg-white hidden list-none absolute right-10 rounded">
+        <li class="border-b border-gray-300"><%= link_to "施設の新規登録", "#", class: "p-1.5 block text-gray-500" %></li>
+        <li><%= link_to "予約済み一覧", "#", class: "p-1.5 block text-gray-500" %></li>
+        <li><%= link_to "登録済み一覧", "#", class: "p-1.5 block text-gray-500" %></li>
+        <li><%= link_to "アカウント設定", "#", class: "p-1.5 block text-gray-500" %></li>
+        <li class="border-t border-gray-300"><%= link_to "ログアウト", "#", class: "p-1.5 block text-gray-500" %></li>
+      </ul>
+    </div>
+  </nav>
+</header>

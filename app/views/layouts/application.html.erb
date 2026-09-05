@@ -20,7 +20,11 @@
 
   <body>
     <div class="flex flex-col min-h-screen">
-      <%= render "layouts/header" %>
+      <% if user_signed_in?%>
+        <%= render "layouts/login_header" %>
+      <% else %>
+        <%= render "layouts/header" %>
+      <% end %>
       <%= yield %>
       <%= render "layouts/footer" %>
     </div>
