@@ -24,7 +24,17 @@
           <td class="py-4"><%= l(reservation.check_in, format: :default) %></td>
           <td class="py-4"><%= l(reservation.check_out, format: :default) %></td>
           <td class="py-4"><%= l(reservation.created_at, format: :default) %></td>
-          <td class="py-4"><img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット"></td>
+          <td class="py-4">
+            <div data-controller="dot" class="relative">
+              <button data-action="click->dot#toggle">
+                <img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット" class="cursor-pointer">
+              </button>
+              <ul data-dot-target="menu" class="hidden shadow-xl p-3 absolute w-32 top-0 left-full bg-white">
+                <li class="pb-4"><%= link_to "再予約", edit_reservation_path(reservation) %></li>
+                <li><%= link_to "予約を削除", reservation_path(reservation), data: { turbo_method: :delete, turbo_confirm: "予約を削除しますか？" }, class: "text-red-500" %></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       <% end %>
     </tbody>
