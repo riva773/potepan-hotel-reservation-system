@@ -25,11 +25,15 @@ class ReservationsController < ApplicationController
     else
       render :confirm, status: :unprocessable_entity
     end
-
-
   end
 
   def destroy
+    @reservation = Reservation.find(params[:id])
+    if @reservation.destroy
+      redirect_to reservations_path, notice: "施設の予約情報を削除しました"
+    else
+      render :reservations, status: :unprocessable_entity
+    end
   end
 
   def confirm
