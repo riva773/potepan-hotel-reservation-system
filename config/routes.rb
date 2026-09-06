@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  get "users/account", to: "users#account"
+  get "users/profile", to: "users#profile"
+  get "users/acount"
+  get "users/profile"
   get "hotels/own", to: "hotels#own"
   resources :hotels
   resources :reservations, only: [ :index, :update, :destroy, :edit, :create ]
