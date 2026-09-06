@@ -1,4 +1,32 @@
-<div>
-  <h1 class="font-bold text-4xl">Reservations#index</h1>
-  <p>Find me in app/views/reservations/index.html.erb</p>
+<div class="w-2/3 mx-auto mb-70">
+  <h2 class="text-3xl mt-8 mb-6">予約済み一覧</h2>
+  <table class="w-full">
+    <thead class="border-b">
+      <tr>
+        <th class="font-bold text-md py-2 text-left">画像</th>
+        <th class="font-bold text-md py-2 text-left">施設名</th>
+        <th class="font-bold text-md py-2 text-left">紹介文</th>
+        <th class="font-bold text-md py-2 text-left">合計料金</th>
+        <th class="font-bold text-md py-2 text-left">チェックイン</th>
+        <th class="font-bold text-md py-2 text-left">チェックアウト</th>
+        <th class="font-bold text-md py-2 text-left">予約確定日時</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @reservations.each do |reservation| %>
+        <tr class="border-b border-gray-300">
+          <td class="py-4">
+          <%= image_tag reservation.hotel.avatar.attached? ? reservation.hotel.avatar : "default_hotel_visual.jpg", class: "h-20 w-28 object-cover" %>
+          </td>
+          <td class="py-4"><%= reservation.hotel.name %></td>
+          <td class="py-4"><%= reservation.hotel.description %></td>
+          <td class="py-4">¥<%= reservation.sum_price.to_formatted_s(:delimited) %></td>
+          <td class="py-4"><%= l(reservation.check_in, formats: :default) %></td>
+          <td class="py-4"><%= l(reservation.check_out, formats: :default) %></td>
+          <td class="py-4"><%= l(reservation.created_at, formats: :default) %></td>
+          <td class="py-4"><img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット"></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 </div>
