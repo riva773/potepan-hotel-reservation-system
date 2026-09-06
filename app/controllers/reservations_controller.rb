@@ -1,7 +1,6 @@
 class ReservationsController < ApplicationController
   def index
     @reservations = Reservation.all
-    Rails.logger.debug "[DEBUG] created_at.class=#{@reservations.first.created_at.class}"
   end
 
   def create

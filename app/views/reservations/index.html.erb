@@ -18,7 +18,7 @@
           <td class="py-4">
           <%= image_tag reservation.hotel.avatar.attached? ? reservation.hotel.avatar : "default_hotel_visual.jpg", class: "h-20 w-28 object-cover" %>
           </td>
-          <td class="py-4"><%= reservation.hotel.name %></td>
+          <td class="py-4 text-blue-400"><%= link_to reservation.hotel.name, hotel_path(reservation.hotel) %></td>
           <td class="py-4"><%= reservation.hotel.description %></td>
           <td class="py-4">¥<%= reservation.sum_price.to_formatted_s(:delimited) %></td>
           <td class="py-4"><%= l(reservation.check_in, formats: :default) %></td>
