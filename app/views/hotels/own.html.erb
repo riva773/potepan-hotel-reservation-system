@@ -1,0 +1,28 @@
+<div class="w-2/3 mx-auto mb-70">
+  <h2 class="text-3xl mt-8 mb-6">登録済み一覧</h2>
+  <table class="w-full">
+    <thead class="border-b">
+      <tr>
+        <th class="font-bold text-md py-2 text-left">画像</th>
+        <th class="font-bold text-md py-2 text-left">施設名</th>
+        <th class="font-bold text-md py-2 text-left">紹介文</th>
+        <th class="font-bold text-md py-2 text-left">料金</th>
+        <th class="font-bold text-md py-2 text-left">作成日</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @hotels.each do |hotel| %>
+        <tr class="border-b border-gray-300">
+          <td class="py-4">
+          <%= image_tag hotel.avatar.attached? ? hotel.avatar : "default_hotel_visual.jpg", class: "h-20 w-28 object-cover" %>
+          </td>
+          <td class="py-4 text-blue-400"><%= link_to hotel.name, hotel %></td>
+          <td class="py-4"><%= hotel.description %></td>
+          <td class="py-4">¥<%= hotel.price.to_formatted_s(:delimited) %></td>
+          <td class="py-4"><%= l(hotel.created_at, format: :date) %></td>
+          <td class="py-4"><img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット"></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

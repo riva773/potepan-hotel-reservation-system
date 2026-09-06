@@ -21,9 +21,9 @@
           <td class="py-4 text-blue-400"><%= link_to reservation.hotel.name, hotel_path(reservation.hotel) %></td>
           <td class="py-4"><%= reservation.hotel.description %></td>
           <td class="py-4">¥<%= reservation.sum_price.to_formatted_s(:delimited) %></td>
-          <td class="py-4"><%= l(reservation.check_in, formats: :default) %></td>
-          <td class="py-4"><%= l(reservation.check_out, formats: :default) %></td>
-          <td class="py-4"><%= l(reservation.created_at, formats: :default) %></td>
+          <td class="py-4"><%= l(reservation.check_in, format: :default) %></td>
+          <td class="py-4"><%= l(reservation.check_out, format: :default) %></td>
+          <td class="py-4"><%= l(reservation.created_at, format: :default) %></td>
           <td class="py-4"><img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット"></td>
         </tr>
       <% end %>

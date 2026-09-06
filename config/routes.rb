@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "hotels/own", to: "hotels#own"
   resources :hotels
   resources :reservations, only: [ :index, :update, :destroy, :edit, :create ]
   devise_for :users

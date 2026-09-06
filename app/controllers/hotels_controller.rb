@@ -30,6 +30,10 @@ class HotelsController < ApplicationController
   def destroy
   end
 
+  def own
+    @hotels = current_user.hotels
+  end
+
   def hotel_params
     params.require(:hotel).permit(:name, :price, :address, :description)
   end
