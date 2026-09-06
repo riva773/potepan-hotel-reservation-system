@@ -26,7 +26,9 @@
         <%= render "layouts/header" %>
       <% end %>
       <%= yield %>
-      <%= render "layouts/footer" %>
+      <% unless content_for?(:hide_footer) %>
+        <%= render "layouts/footer" %>
+      <% end %>
     </div>
   </body>
 </html>

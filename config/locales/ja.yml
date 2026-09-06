@@ -5,6 +5,13 @@ ja:
         check_in: "チェックイン"
         check_out: "チェックアウト"
         attendance: "人数"
+      user:
+        email: "メールアドレス"
+        password: "パスワード"
+        password_confirmation: "パスワード確認"
+        remember_me: "ログインを記憶"
+        name: "ユーザー名"
+
   date:
     formats:
       default: "%Y/%m/%d"
