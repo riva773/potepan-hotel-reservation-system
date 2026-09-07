@@ -6,7 +6,7 @@
     <div data-controller="dropdown" class="relative">
       <button data-action="click->dropdown#toggle" class="flex items-center cursor-pointer">
         <% if current_user.avatar.attached? %>
-          <%= image_tag current_user.avatar %><span class="text-white"><%= current_user.name %></span>
+          <%= image_tag current_user.avatar, class: "w-10 h-10 object-cover rounded-full mr-2" %><span class="text-white"><%= current_user.name %></span>
           <svg class="ml-2 h-4 w-4 text-white cursor-pointer"  width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <polyline points="6 9 12 15 18 9" /></svg>
         <% else %>
           <%= image_tag  "user_icon", class: "w-14 h-auto" %><span class="text-white"><%= current_user.name %></span>
