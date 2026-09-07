@@ -2,6 +2,15 @@ class HotelsController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
   def index
     @hotels = Hotel.all
+
+    if params[:address].present?
+      @hotels = @hotels.where("address LIKE ?", "%#{params[:address]}%")
+    end
+
+    if params[:keyword].present?
+    keyword = "%#{params[:keyword]}%"
+      @hotels = @hotels.where("name LIKE ? or description LIKE ? or address LIKE ?", keyword, keyword, keyword)
+    end
   end
 
   def new
