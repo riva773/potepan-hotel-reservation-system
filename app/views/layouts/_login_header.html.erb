@@ -14,9 +14,9 @@
         <% end %>
       </button>
       <ul data-dropdown-target="menu" class="bg-white hidden list-none absolute right-0 rounded whitespace-nowrap">
-        <li class="border-b border-gray-300"><%= link_to "施設の新規登録", "#", class: "p-1.5 block text-gray-500" %></li>
+        <li class="border-b border-gray-300"><%= link_to "施設の新規登録", new_hotel_path, class: "p-1.5 block text-gray-500" %></li>
         <li><%= link_to "予約済み一覧", reservations_path, class: "p-1.5 block text-gray-500" %></li>
-        <li><%= link_to "登録済み一覧", "#", class: "p-1.5 block text-gray-500" %></li>
+        <li><%= link_to "登録済み一覧", hotels_own_path, class: "p-1.5 block text-gray-500" %></li>
         <li><%= link_to "アカウント設定", users_account_path, class: "p-1.5 block text-gray-500" %></li>
         <li class="border-t border-gray-300"><%= link_to "ログアウト", destroy_user_session_path, data: {turbo_method: :delete}, class: "p-1.5 block text-gray-500" %></li>
       </ul>

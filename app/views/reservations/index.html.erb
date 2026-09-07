@@ -1,11 +1,5 @@
 <div class="w-2/3 mx-auto mb-70">
-  <% if flash[:notice] %>
-    <div class="text-center mt-5">
-      <div class="bg-black text-white inline-block py-2 px-4">
-        <%= notice %>
-      </div>
-    </div>
-  <% end %>
+  <%= render "shared/flash_message" %>
   <h2 class="text-3xl mt-8 mb-6">予約済み一覧</h2>
   <table class="w-full">
     <thead class="border-b">
