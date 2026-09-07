@@ -6,14 +6,15 @@
         <h3 class="text-2xl pb-3">プロフィール</h3>
     </div>
     <%= form_with model:@user, url: update_users_profile_path do |f| %>
-    <div class="grid grid-cols-[max-content_max-content_max-content] gap-x-20 gap-y-6 items-center mb-10">
+      <%= render "shared/error_messages", object: f.object %>
+    <div class="grid grid-cols-[100px_minmax(0,1fr)_minmax(0,1fr)] gap-x-20 gap-y-6 items-center mb-10">
       <p class="text-sm font-bold"><%= f.label :avatar, "アイコン画像" %></p>
       <%= image_tag @user.avatar.attached? ? @user.avatar : "user_icon.png", class: "object-contain w-20 h-20" %>
       <%= f.file_field :avatar, class: "border border-gray-300 rounded-xl p-2 cursor-pointer" %>
       <p class="text-sm font-bold">名前</p>
-      <%= f.text_field :name, class: "col-span-2 border border-gray-300 rounded-xl p-2"  %>
+      <%= f.text_field :name, class: "col-span-2 border border-gray-300 rounded-xl p-2 w-full"  %>
       <p class="text-sm font-bold">自己紹介</p>
-      <%= f.text_area :introduction, class: "border border-gray-300 rounded-xl col-span-2 p-2 h-40" %>
+      <%= f.text_area :introduction, class: "border border-gray-300 rounded-xl col-span-2 p-2 h-40 w-full" %>
       <div class="col-start-2 col-span-2 flex justify-end gap-4 items-center w-full">
         <%= link_to "キャンセル", users_profile_path, class: "border border-gray-300 text-gray-500 p-4 rounded-xl" %>
         <%= f.submit "保存", class: "bg-orange-500 py-4 px-8 text-white rounded-xl cursor-pointer"%>

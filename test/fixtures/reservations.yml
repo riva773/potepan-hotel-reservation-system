@@ -2,14 +2,14 @@
 
 one:
   user: one
-  hotel: one
+  room: one
   check_in: 2026-09-04
   check_out: 2026-09-04
   attendance: 1
 
 two:
   user: two
-  hotel: two
+  room: two
   check_in: 2026-09-04
   check_out: 2026-09-04
   attendance: 1

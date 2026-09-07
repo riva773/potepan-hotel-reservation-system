@@ -3,8 +3,8 @@ Rails.application.routes.draw do
   get "users/profile", to: "users#profile"
   get "users/profile/edit", to: "users#edit", as: :edit_users_profile
   patch "users/profile/update", to: "users#update", as: :update_users_profile
-  get "hotels/own", to: "hotels#own"
-  resources :hotels
+  get "rooms/own", to: "rooms#own"
+  resources :rooms
   resources :reservations, only: [ :index, :update, :destroy, :edit, :create ]
   devise_for :users
   root "pages#home"

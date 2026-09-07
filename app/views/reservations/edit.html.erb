@@ -2,12 +2,12 @@
   <h2 class="text-3xl mt-12 mb-8">再予約する</h2>
   <%= form_with model: @reservation, url: reservations_confirm_path, data: {turbo: false }, method: :post do |f| %>
     <%= f.hidden_field :id, value: @reservation.id %>
-    <%= image_tag @reservation.hotel.avatar.attached? ? @reservation.hotel.avatar : "default_hotel_visual.jpg", class: "mb-4" %>
+    <%= image_tag @reservation.room.avatar.attached? ? @reservation.room.avatar : "default_room_visual.png", class: "mb-4" %>
     <div class="flex justify-between mb-2">
-      <p class="text-2xl text-gray-500"><%= @reservation.hotel.name %></p>
-      <p class="text-2xl text-red-500">¥<%= @reservation.hotel.price.to_formatted_s(:delimited) %>~</p>
+      <p class="text-2xl text-gray-500"><%= @reservation.room.name %></p>
+      <p class="text-2xl text-red-500">¥<%= @reservation.room.price.to_formatted_s(:delimited) %>~</p>
     </div>
-    <p class="text-gray-500"><%= @reservation.hotel.address %></p>
+    <p class="text-gray-500"><%= @reservation.room.address %></p>
     <div class="flex gap-2 mb-2">
       <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
       <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
@@ -15,7 +15,7 @@
       <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
       <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
     </div>
-    <p class="mb-6"><%= @reservation.hotel.description %></p>
+    <p class="mb-6"><%= @reservation.room.description %></p>
     <%= f.label :check_in, "チェックイン", class: "text-gray-500 font-bold text-sm" %>
     <sup class="text-red-500">✴︎</sup>
     <p class="border border-gray-300 mb-3 p-4 rounded"><%= date_field :reservation, :check_in %></p>

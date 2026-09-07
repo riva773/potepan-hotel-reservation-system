@@ -21,16 +21,15 @@
     <p>お支払い金額</p>
     <p>¥<%= @sum_price.to_formatted_s(:delimited) %></p>
   </div>
-  <p class="mb-8">上記内容で足しければ「確定」ボタンを押してください。</p>
+  <p class="mb-8">上記内容で正しければ「確定」ボタンを押してください。</p>
   <%= form_with model: @reservation do |f| %>
     <%= f.hidden_field :id, value: @reservation.id %>
-    <%= f.hidden_field :hotel_id, value: @hotel.id %>
+    <%= f.hidden_field :room_id, value: @room.id %>
     <%= f.hidden_field :check_in, value: @reservation.check_in %>
     <%= f.hidden_field :check_out, value: @reservation.check_out %>
     <%= f.hidden_field :attendance, value: @reservation.attendance %>
-    <%= f.hidden_field :sum_price, value: @sum_price %>
     <%= f.submit "予約を確定", class: "w-full inline-block bg-orange-500 text-white text-center font-bold rounded-xl p-4 mb-4 cursor-pointer"%>
-    <%= link_to "キャンセル", @hotel, class: "w-full border border-gray-300 text-center text-gray-500 p-4 inline-block rounded-xl" %>
+    <%= link_to "キャンセル", @room, class: "w-full border border-gray-300 text-center text-gray-500 p-4 inline-block rounded-xl" %>
   <% end %>
 
 </div>

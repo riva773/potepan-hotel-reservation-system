@@ -25,6 +25,7 @@
       <% else %>
         <%= render "layouts/header" %>
       <% end %>
+      <%= render "shared/flash_message" %>
       <%= yield %>
       <% unless content_for?(:hide_footer) %>
         <%= render "layouts/footer" %>

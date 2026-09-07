@@ -1,0 +1,23 @@
+<div class="w-1/2 mx-auto mt-10 mb-35">
+  <h1 class="text-3xl mb-10">新規登録</h1>
+  <%= form_with model: @room, multipart: true do |f| %>
+    <%= render "shared/error_messages", object: f.object %>
+    <div class="grid grid-cols-[200px_1fr] gap-y-8 gap-x-4 mb-8 items-center">
+      <p class="font-bold"><%= f.label "施設名" %><sup class="text-red-500">✴︎</sup></p>
+      <%= f.text_field :name, class: "border border-gray-300 p-2 rounded", placeholder: "ルーム名を入力" %>
+      <p class="font-bold"><%= f.label "施設詳細" %><sup class="text-red-500">✴︎</sup></p>
+      <%= f.text_area :description, class: "border border-gray-300 p-2 rounded", placeholder: "施設詳細を入力" %>
+      <p class="font-bold"><%= f.label "料金" %><sup class="text-red-500">✴︎</sup></p>
+      <%= f.text_field :price, class: "border border-gray-300 p-2 rounded", placeholder: "一泊あたりの料金を入力" %>
+      <p class="font-bold"><%= f.label "住所" %><sup class="text-red-500">✴︎</sup></p>
+      <%= f.text_field :address, class: "border border-gray-300 p-2 rounded", placeholder: "住所を入力" %>
+      <%= f.label :avatar, "施設画像", class: "font-bold" %>
+      <%= f.file_field :avatar, id: "room_avatar", class: "sr-only", accept: "image/*" %>
+      <%= f.label :avatar, "画像アップロード", for: "room_avatar", class: "font-bold text-sm border border-gray-300 text-center w-1/2 rounded py-1.5 cursor-pointer text-sm" %>
+    </div>
+    <div class="mb-4">
+      <%= f.submit "保存", class: "inline-block w-full bg-orange-500 py-2 text-white rounded-lg font-bold cursor-pointer" %>
+    </div>
+    <%= link_to "キャンセル", rooms_path, class: "w-full inline-block text-center border border-gray-300 py-2 rounded-lg font-bold text-sm"%>
+  <% end %>
+</div>

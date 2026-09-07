@@ -1,23 +1,26 @@
-<div class="bg-gray-200 h-30 mb-8">
-  <%# 後で検索系のinput_fieldなどを作成 %>
-</div>
+<%= render "shared/search" %>
 
-<div class="w-3/4 mx-auto mt-8 mb-30 max-w-[1500px] min-w-[1000px]">
-  <%= link_to "← 戻る", hotels_path, class: "text-blue-500 text-md" %>
-  <div class="flex gap-10">
-    <div class="w-1/2">
-      <% if current_user.avatar.attached? %>
-        <%= image_tag current_user.avatar, class: "object-contain" %>
+<div class="mx-auto mt-8 px-8 mb-30 max-w-[2000px]">
+  <div class="flex justify-between">
+    <%= link_to "← 戻る", rooms_path, class: "text-blue-500 text-lg" %>
+    <% if @room.user == current_user %>
+      <%= link_to "編集", edit_room_path(@room), class: "text-blue-500 text-lg" %>
+    <% end %>
+  </div>
+  <div class="flex gap-4">
+    <div class="w-2/5">
+      <% if @room.avatar.attached? %>
+        <%= image_tag @room.avatar, class: "w-full object-contain" %>
       <% else %>
-        <%= image_tag "default_hotel_visual.jpg", class: "object-contain" %>
+        <%= image_tag "default_room_visual.png", class: "w-full object-contain" %>
       <% end %>
     </div>
-    <div class="bg-orange-50 w-1/2 p-5">
+    <div class="bg-orange-50 flex-1 p-5">
       <div class="flex justify-between mt-5 mb-1">
-        <span class="text-2xl text-gray-500"><%= @hotel.name %></span>
-        <span class="text-2xl text-red-500">¥<%= @hotel.price.to_formatted_s(:delimited) %>~</span>
+        <span class="text-2xl text-gray-500"><%= @room.name %></span>
+        <span class="text-2xl text-red-500">¥<%= @room.price.to_formatted_s(:delimited) %>~</span>
       </div>
-      <p class="text-gray-500 mb-1.5"><%= @hotel.address %></p>
+      <p class="text-gray-500 mb-1.5"><%= @room.address %></p>
       <div class="flex gap-2 mb-4">
         <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
         <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
@@ -25,21 +28,24 @@
         <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
         <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
       </div>
-      <p class="text-gray-500"><%= @hotel.description %></p>
-      <%= form_with model: Reservation.new, url: reservations_confirm_path, data: {turbo: false} do |f| %>
-        <%= f.hidden_field :hotel_id, value: @hotel.id %>
+      <p class="text-gray-500"><%= @room.description %></p>
+      <%= form_with model: @reservation, url: reservations_confirm_path, data: {turbo: false} do |f| %>
+        <%= f.hidden_field :room_id, value: @room.id %>
         <div class="bg-white flex gap-2 justify-center p-5 mb-3">
           <div class="text-center flex-1 min-w-0">
             <%= f.label :check_in, class: "font-bold text-sm text-gray-500" %>
             <%= f.date_field :check_in, class: "border border-gray-300 p-3 w-full" %>
+            <%= render "shared/field_error_messages", object: f.object, attribute: :check_in %>
           </div>
           <div class="text-center flex-1 min-w-0">
             <%= f.label :check_out, class: "font-bold text-sm text-gray-500" %>
             <%= f.date_field :check_out, class: "border border-gray-300 p-3 w-full" %>
+            <%= render "shared/field_error_messages", object: f.object, attribute: :check_out %>
           </div>
           <div class="text-center flex-1 min-w-0">
             <%= f.label :attendance, class: "font-bold text-sm text-gray-500" %>
-            <%= f.number_field :attendance, class: "border border-gray-300 p-3 w-full", placeholder: "0" %>
+            <%= f.number_field :attendance, class: "border border-gray-300 p-3 w-full", placeholder: "0", min: 1 %>
+            <%= render "shared/field_error_messages", object: f.object, attribute: :attendance %>
           </div>
         </div>
         <%= f.submit "予約する", class: "bg-orange-300 cursor-pointer w-full p-4 text-white font-bold" %>

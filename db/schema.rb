@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_05_101305) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_07_045155) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -39,7 +39,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_05_101305) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "hotels", force: :cascade do |t|
+  create_table "reservations", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "room_id", null: false
+    t.date "check_in", null: false
+    t.date "check_out", null: false
+    t.integer "attendance", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "sum_price", null: false
+    t.index ["room_id"], name: "index_reservations_on_room_id"
+    t.index ["user_id"], name: "index_reservations_on_user_id"
+  end
+
+  create_table "rooms", force: :cascade do |t|
     t.string "name", null: false
     t.integer "price", null: false
     t.string "address", null: false
@@ -47,21 +60,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_05_101305) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_hotels_on_name", unique: true
-    t.index ["user_id"], name: "index_hotels_on_user_id"
-  end
-
-  create_table "reservations", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "hotel_id", null: false
-    t.date "check_in", null: false
-    t.date "check_out", null: false
-    t.integer "attendance", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "sum_price", null: false
-    t.index ["hotel_id"], name: "index_reservations_on_hotel_id"
-    t.index ["user_id"], name: "index_reservations_on_user_id"
+    t.index ["name"], name: "index_rooms_on_name", unique: true
+    t.index ["user_id"], name: "index_rooms_on_user_id"
+    t.check_constraint "price >= 1", name: "price_check"
   end
 
   create_table "users", force: :cascade do |t|
@@ -80,7 +81,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_05_101305) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "hotels", "users"
-  add_foreign_key "reservations", "hotels"
+  add_foreign_key "reservations", "rooms"
   add_foreign_key "reservations", "users"
+  add_foreign_key "rooms", "users"
 end

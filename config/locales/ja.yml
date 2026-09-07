@@ -19,3 +19,15 @@ ja:
     formats:
       default: "%Y/%m/%d %H:%M"
       date: "%Y/%m/%d"
+  devise:
+    sessions:
+      signed_out: "ログアウトしました。"
+      signed_in: "ログインしました。"
+      user:
+        signed_out: "ログアウトしました。"
+        signed_in: "ログインしました。"
+    registrations:
+      signed_up: "会員登録しました。"
+      user:
+        signed_up: "会員登録しました。"
+
