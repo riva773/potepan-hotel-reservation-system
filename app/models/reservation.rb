@@ -9,15 +9,15 @@ class Reservation < ApplicationRecord
 
   private
   def checkout_must_be_after_checkin
-    return if check_in.blank? | check_out.blank?
+    return if check_in.blank? || check_out.blank?
     if check_out <= check_in
       errors.add(:check_out, "はチェックイン日より後の日付を選択してください。")
     end
   end
 
   def checkin_must_be_after_today
-    return if check_in.blank? | check_out.blank?
-    if check_in < Date.today
+    return if check_in.blank?
+    if check_in < Time.zone.today
       errors.add(:check_in, "は、今日以降の日付を選択してください。")
     end
   end

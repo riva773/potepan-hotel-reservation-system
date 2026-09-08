@@ -54,7 +54,7 @@ class ReservationsController < ApplicationController
     end
     if @reservation.check_in.blank? ||
     @reservation.check_out.blank? ||
-    @reservation.attendance.blank? || @reservation.check_in < Date.today || @reservation.check_in >= @reservation.check_out || @reservation.attendance <= 0
+    @reservation.attendance.blank? || @reservation.check_in < Time.zone.today || @reservation.check_in >= @reservation.check_out || @reservation.attendance <= 0
       @reservation.valid?
       flash.now[:alert]="予約情報が不足しています。"
       if params[:reservation][:id].present?

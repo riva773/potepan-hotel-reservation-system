@@ -8,7 +8,7 @@
     </div>
     <div class="grid grid-cols-[max-content_1fr] gap-x-20 gap-y-6 items-center">
       <p class="text-sm font-bold">アイコン画像</p>
-      <%= image_tag @user.avatar.attached? ? @user.avatar : "user_icon.png", class: "object-contain w-20 h-20" %>
+      <%= image_tag @user.avatar.attached? ? @user.avatar : "user_icon.png", class: "object-cover w-20 h-20 rounded-full" %>
       <p class="text-sm font-bold">名前</p>
       <%= @user.name %>
       <p class="text-sm font-bold">自己紹介</p>
