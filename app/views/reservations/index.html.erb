@@ -1,4 +1,4 @@
-<div class="w-2/3 mx-auto mb-70">
+<div class="w-2/3 mx-auto mb-70" data-controller="reservation-modal">
   <h2 class="text-3xl mt-8 mb-6">予約済み一覧</h2>
   <table class="w-full">
     <thead class="border-b">
@@ -31,7 +31,7 @@
               </button>
               <ul data-dot-target="menu" class="hidden shadow-xl p-3 absolute w-32 top-0 left-full bg-white">
                 <li class="pb-4"><%= link_to "再予約", edit_reservation_path(reservation) %></li>
-                <li><%= link_to "予約を削除", reservation_path(reservation), data: { turbo_method: :delete, turbo_confirm: "予約を削除しますか？" }, class: "text-red-500" %></li>
+                <li><button data-action="click->reservation-modal#open" class="text-red-500 cursor-pointer" type="button" data-reservation-room="<%= reservation.room.name %>" data-reservation-sum-price= "<%= reservation.sum_price.to_formatted_s(:delimited) %>" data-reservation-check-in = "<%= l(reservation.check_in, format: :default) %>" data-reservation-check-out = "<%= l(reservation.check_out,format: :default) %>"data-reservation-attendance = "<%= reservation.attendance %>" data-reservation-img = "<%= reservation.room.avatar.attached? ? url_for(reservation.room.avatar) : asset_path("default_room_visual.png") %>">予約を削除</button></li>
               </ul>
             </div>
           </td>
@@ -39,4 +39,23 @@
       <% end %>
     </tbody>
   </table>
+  <div class="fixed inset-0 hidden z-50 bg-black/50 flex items-center justify-center" data-reservation-modal-target="modal">
+    <div class="bg-white p-8">
+      <h2 class="text-2xl mb-2">予約削除</h2>
+      <p data-reservation-modal-target="name"></p>
+      <p data-reservation-modal-target="sumPrice"></p>
+      <p data-reservation-modal-target="checkIn"></p>
+      <p data-reservation-modal-target="checkOut"></p>
+      <p data-reservation-modal-target="attendance"></p>
+      <img data-reservation-modal-target="img" src="" alt="ホテルの画像" class="mb-2">
+      <div class="flex justify-between">
+        <button type="button" data-action="click->reservation-modal#close" class="cursor-pointer text-xl">キャンセル</button>
+        <%= link_to "削除", "#", data: {
+          reservation_modal_target: "destroyLink",
+          turbo_method: :delete
+        }, class: "text-red-500 text-xl" %>
+      </div>
+    </div>
+
+  </div>
 </div>
