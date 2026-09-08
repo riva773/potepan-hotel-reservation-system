@@ -13,7 +13,7 @@ class ReservationsController < ApplicationController
     if @reservation.save
       redirect_to reservations_path, notice: "施設の予約が完了しました"
     else
-      render :new, status: :unprocessable_entity
+      render template: "rooms/show", status: :unprocessable_entity
     end
   end
 
@@ -26,7 +26,7 @@ class ReservationsController < ApplicationController
     if @reservation.save
       redirect_to reservations_path, notice: "予約を更新しました。"
     else
-      render :confirm, status: :unprocessable_entity
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -34,7 +34,7 @@ class ReservationsController < ApplicationController
     if @reservation.destroy
       redirect_to reservations_path, notice: "施設の予約情報を削除しました"
     else
-      render :reservations, status: :unprocessable_entity
+      redirect_to reservations_path, alert: "予約の削除に失敗しました。"
     end
   end
 
@@ -55,7 +55,7 @@ class ReservationsController < ApplicationController
     @reservation.attendance.blank? || @reservation.check_in < Date.today || @reservation.check_in >= @reservation.check_out || @reservation.attendance <= 0
       @reservation.valid?
       flash.now[:alert]="予約情報が不足しています。"
-      render "rooms/show", status: :unprocessable_entity
+      render "edit", status: :unprocessable_entity
       return
     end
     @duration = (@reservation.check_out - @reservation.check_in).to_i
