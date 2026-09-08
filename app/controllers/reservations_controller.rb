@@ -39,7 +39,7 @@ class ReservationsController < ApplicationController
   end
 
   def confirm
-    if params[:reservation][:id]
+    if params[:reservation][:id].present?
       @reservation = current_user.reservations.find(params[:reservation][:id])
       @reservation.check_in = params[:reservation][:check_in]
       @reservation.check_out = params[:reservation][:check_out]
@@ -55,7 +55,11 @@ class ReservationsController < ApplicationController
     @reservation.attendance.blank? || @reservation.check_in < Date.today || @reservation.check_in >= @reservation.check_out || @reservation.attendance <= 0
       @reservation.valid?
       flash.now[:alert]="予約情報が不足しています。"
-      render "edit", status: :unprocessable_entity
+      if params[:reservation][:id].present?
+        render "edit", status: :unprocessable_entity
+      else
+        render "rooms/show", status: :unprocessable_entity
+      end
       return
     end
     @duration = (@reservation.check_out - @reservation.check_in).to_i
