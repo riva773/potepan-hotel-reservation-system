@@ -31,7 +31,7 @@
               </button>
               <ul data-dot-target="menu" class="hidden shadow-xl p-3 absolute w-32 top-0 left-full bg-white">
                 <li class="pb-4"><%= link_to "再予約", edit_reservation_path(reservation) %></li>
-                <li><button data-action="click->reservation-modal#open" class="text-red-500 cursor-pointer" type="button" data-reservation-room="<%= reservation.room.name %>" data-reservation-sum-price= "<%= reservation.sum_price.to_formatted_s(:delimited) %>" data-reservation-check-in = "<%= l(reservation.check_in, format: :default) %>" data-reservation-check-out = "<%= l(reservation.check_out,format: :default) %>"data-reservation-attendance = "<%= reservation.attendance %>" data-reservation-img = "<%= reservation.room.avatar.attached? ? url_for(reservation.room.avatar) : asset_path("default_room_visual.png") %>">予約を削除</button></li>
+                <li><button data-action="click->reservation-modal#open" class="text-red-500 cursor-pointer" type="button" data-reservation-room="<%= reservation.room.name %>" data-reservation-sum-price= "<%= reservation.sum_price.to_formatted_s(:delimited) %>" data-reservation-check-in = "<%= l(reservation.check_in, format: :default) %>" data-reservation-check-out = "<%= l(reservation.check_out,format: :default) %>"data-reservation-attendance = "<%= reservation.attendance %>" data-reservation-img = "<%= reservation.room.avatar.attached? ? url_for(reservation.room.avatar) : asset_path("default_room_visual.png") %>" data-reservation-delete-path="<%= reservation_path(reservation) %>">予約を削除</button></li>
               </ul>
             </div>
           </td>

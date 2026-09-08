@@ -2,7 +2,7 @@ class RoomsController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
   before_action :set_room, only: [ :edit, :update, :destroy ]
   def index
-    @rooms = Room.all
+    @rooms = Room.with_attached_avatar
 
     if params[:address].present?
       @rooms = @rooms.where("address LIKE ?", "%#{params[:address]}%")
@@ -10,7 +10,7 @@ class RoomsController < ApplicationController
 
     if params[:keyword].present?
       keyword = "%#{params[:keyword]}%"
-      @rooms = @rooms.where("name LIKE ? or description LIKE ? or address LIKE ?", keyword, keyword, keyword)
+      @rooms = @rooms.where("name LIKE ? or description LIKE ?", keyword, keyword)
     end
   end
 
@@ -52,7 +52,7 @@ class RoomsController < ApplicationController
   end
 
   def own
-    @rooms = current_user.rooms
+    @rooms = current_user.rooms.with_attached_avatar
   end
 
   def room_params

@@ -2,7 +2,9 @@ class ReservationsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_reservation, only: [ :edit, :update, :destroy ]
   def index
-    @reservations = Reservation.where(user_id: current_user.id)
+    @reservations = current_user.reservations.includes(
+      room: { avatar_attachment: :blob }
+    )
   end
 
   def create
