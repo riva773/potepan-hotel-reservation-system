@@ -2,7 +2,7 @@
 
 <div class="mx-auto mt-8 px-8 mb-30 max-w-[2000px]">
   <div class="flex justify-between">
-    <%= link_to "← 戻る", rooms_path, class: "text-blue-500 text-lg" %>
+    <%= link_to "← 戻る", request.referer || rooms_path, class: "text-blue-500 text-lg" %>
     <% if @room.user == current_user %>
       <%= link_to "編集", edit_room_path(@room), class: "text-blue-500 text-lg" %>
     <% end %>

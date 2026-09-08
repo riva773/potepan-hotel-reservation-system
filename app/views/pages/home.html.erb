@@ -9,7 +9,13 @@
 
     </div>
   </div>
-  <div class="px-6">
+  <div class="px-6 mb-50">
     <h2 class="mb-30 text-3xl border-b-3 border-orange-500 pb-4 inline-block">おすすめのエリア</h2>
+    <div class="grid grid-cols-4 gap-8 mb-10">
+      <%= render "shared/card_area", area_name: "東京",area_name_en: "Tokyo", image_name: "tokyo.jpg" %>
+      <%= render "shared/card_area", area_name: "大阪", area_name_en: "Osaka", image_name: "osaka.jpg" %>
+      <%= render "shared/card_area", area_name: "京都", area_name_en: "Kyoto", image_name: "kyoto.jpg" %>
+      <%= render "shared/card_area", area_name: "札幌", area_name_en: "Sapporo", image_name: "sapporo.jpg" %>
+    </div>
   </div>
 </div>
