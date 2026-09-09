@@ -1,0 +1,9 @@
+<% if object.errors[attribute].present? %>
+  <div class="text-center mb-2">
+    <ul>
+      <% object.errors.full_messages_for(attribute).each do |msg| %>
+        <li class="text-red-500  text-xs"><%= msg %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

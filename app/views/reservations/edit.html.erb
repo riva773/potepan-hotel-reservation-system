@@ -1,0 +1,34 @@
+<div class="w-1/2 mx-auto">
+  <h2 class="text-3xl mt-12 mb-8">再予約する</h2>
+  <%= form_with model: @reservation, url: reservations_confirm_path, data: {turbo: false }, method: :post do |f| %>
+    <%= f.hidden_field :id, value: @reservation.id %>
+    <%= image_tag @reservation.room.avatar.attached? ? @reservation.room.avatar : "default_room_visual.png", class: "mb-4 w-full" %>
+    <div class="flex justify-between mb-2">
+      <p class="text-2xl text-gray-500"><%= @reservation.room.name %></p>
+      <p class="text-2xl text-red-500">¥<%= @reservation.room.price.to_formatted_s(:delimited) %>~</p>
+    </div>
+    <p class="text-gray-500"><%= @reservation.room.address %></p>
+    <div class="flex gap-2 mb-2">
+      <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+      <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+      <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+      <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+      <img src="https://rails-02-sample.herokuapp.com/assets/room/star-1544f5d9e9846039b88b7afca69bdd007b6a36405fbbbfaf4e1faba106f5a0b4.svg" alt="星のアイコン">
+    </div>
+    <p class="mb-6"><%= @reservation.room.description %></p>
+    <%= f.label :check_in, "チェックイン", class: "text-gray-500 font-bold text-sm" %>
+    <sup class="text-red-500">✴︎</sup>
+    <div class="border border-gray-300 p-4 rounded"><%= f.date_field :check_in %></div>
+    <%= render "shared/field_error_messages", object: f.object, attribute: :check_in %>
+    <%= f.label :check_out, "チェックアウト", class: "text-gray-500 font-bold text-sm mt-3" %>
+    <sup class="text-red-500">✴︎</sup>
+    <div class="border border-gray-300 p-4 rounded"><%= f.date_field :check_out %></div>
+    <%= render "shared/field_error_messages", object: f.object, attribute: :check_out %>
+    <%= f.label :attendance, "人数", class: "text-gray-500 font-bold text-sm mt-3" %>
+    <sup class="text-red-500">✴︎</sup>
+    <div class="border border-gray-300 p-4 rounded"><%= f.number_field :attendance %></div>
+    <%= render "shared/field_error_messages", object: f.object, attribute: :attendance %>
+    <%= f.submit "再予約する", class: "w-full bg-orange-500 text-white p-4 rounded-xl mt-6 mb-3 font-bold cursor-pointer" %>
+  <% end %>
+  <%= link_to "キャンセル", reservations_path, class: "border border-gray-300 text-center inline-block w-full rounded-xl mb-10 p-4 text-sm font-bold" %>
+</div>

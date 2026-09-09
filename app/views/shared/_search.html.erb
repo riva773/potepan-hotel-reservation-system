@@ -1,0 +1,9 @@
+<div class="bg-gray-200 h-30 mb-8">
+  <div class=" w-2/3 mx-auto h-full">
+    <%= form_with url: rooms_path, method: :get, class: "h-full flex items-center justify-center gap-4" do |f| %>
+      <%= f.text_field :address, placeholder: "エリア名を入力", class: "border border-gray-300 rounded bg-white p-2" %>
+      <%= f.text_field :keyword, placeholder: "キーワード名を入力", class: "border border-gray-300 rounded bg-white p-2" %>
+      <%= f.submit "検索", class: "bg-gray-100 rounded p-2 cursor-pointer" %>
+    <% end %>
+  </div>
+</div>

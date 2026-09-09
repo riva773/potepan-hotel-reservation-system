@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Railsデバッグ入門：予約一覧のnilを追う</title>
+  <style>
+    :root {
+      --ink: #1c2738;
+      --muted: #65758b;
+      --line: #d8e2ee;
+      --paper: #f5f8fc;
+      --card: #ffffff;
+      --blue: #2563eb;
+      --blue-soft: #eaf1ff;
+      --green: #14805a;
+      --green-soft: #e9f8f1;
+      --orange: #c96b18;
+      --orange-soft: #fff4e5;
+      --red: #b4233c;
+      --red-soft: #fff0f2;
+      --dark: #172235;
+      --shadow: 0 16px 46px rgba(28, 39, 56, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.75;
+    }
+    a { color: var(--blue); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .12em .35em; border-radius: .35em; background: #edf2f8; color: #30435d; }
+    pre { overflow-x: auto; margin: 1rem 0 0; padding: 1rem 1.1rem; border: 1px solid #283a57; border-radius: .8rem; background: var(--dark); color: #edf4ff; line-height: 1.65; font-size: .86rem; }
+    .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { margin: 28px 0 24px; padding: 40px 44px; border-radius: 1.5rem; background: linear-gradient(135deg, #172235 0%, #263b61 62%, #315d9f 100%); color: white; box-shadow: var(--shadow); }
+    .eyebrow { margin: 0 0 .5rem; color: #bed2ff; font-weight: 700; letter-spacing: .08em; font-size: .78rem; }
+    h1, h2, h3 { line-height: 1.3; }
+    h1 { max-width: 820px; margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); }
+    h2 { margin: 0 0 1rem; font-size: 1.5rem; }
+    h3 { margin: 1.35rem 0 .5rem; font-size: 1.08rem; }
+    .hero p { max-width: 820px; margin: 1rem 0 0; color: #e1eaf8; }
+    .goal { display: inline-block; margin-top: 1.3rem; padding: .6rem .85rem; border: 1px solid rgba(255,255,255,.2); border-radius: .7rem; background: rgba(255,255,255,.1); }
+    section { margin: 24px 0; padding: 28px 32px; border: 1px solid var(--line); border-radius: 1.2rem; background: var(--card); box-shadow: var(--shadow); }
+    .lead { margin-top: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .mini-card { padding: 18px; border: 1px solid var(--line); border-radius: .9rem; background: #fbfcfe; }
+    .mini-card h3 { margin-top: 0; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 1.2rem 0; }
+    .flow span { position: relative; display: grid; place-items: center; min-height: 74px; padding: 8px; border-radius: .7rem; background: var(--blue-soft); color: #1e438d; text-align: center; font-size: .9rem; font-weight: 700; }
+    .flow span:not(:last-child)::after { content: "→"; position: absolute; transform: translateX(calc(50% + 6px)); color: var(--blue); font-size: 1.3rem; }
+    .timeline { counter-reset: step; padding: 0; list-style: none; }
+    .timeline li { position: relative; margin: .8rem 0; padding: .8rem .9rem .8rem 3.1rem; border: 1px solid var(--line); border-radius: .7rem; background: #fbfcfe; }
+    .timeline li::before { counter-increment: step; content: counter(step); position: absolute; left: .8rem; top: .75rem; display: grid; place-items: center; width: 1.55rem; height: 1.55rem; border-radius: 50%; background: var(--blue); color: white; font-weight: 700; }
+    .callout { margin-top: 1rem; padding: 1rem 1.1rem; border-left: 5px solid var(--orange); border-radius: .7rem; background: var(--orange-soft); }
+    .success { border-left-color: var(--green); background: var(--green-soft); }
+    .danger { border-left-color: var(--red); background: var(--red-soft); }
+    .mapping { display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px 20px; align-items: center; margin-top: 1rem; }
+    .mapping div { padding: .65rem .8rem; border-radius: .6rem; background: #f4f7fb; }
+    .tag { display: inline-block; margin-right: .3rem; padding: .18rem .5rem; border-radius: 999px; background: var(--blue-soft); color: #1e438d; font-size: .78rem; font-weight: 700; }
+    .probe { margin-top: 1rem; padding: 18px; border: 1px solid #cbd9ed; border-radius: .9rem; background: #fbfdff; }
+    .probe h3 { margin-top: 0; }
+    .probe ol { margin-bottom: 0; }
+    .simulator { padding: 20px; border: 1px solid #cbd9ed; border-radius: .9rem; background: #fbfdff; }
+    .simulator label { display: block; margin-bottom: .45rem; font-weight: 700; }
+    select, button { cursor: pointer; padding: .55rem .75rem; border: 1px solid #b9c8dc; border-radius: .55rem; background: white; color: var(--ink); font: inherit; }
+    button { font-weight: 700; }
+    button:hover, select:hover { border-color: var(--blue); }
+    .simulation-output { min-height: 100px; margin-top: 1rem; padding: 1rem; border-radius: .7rem; background: var(--dark); color: #e8eef8; white-space: pre-line; }
+    .exercise { margin-top: 18px; padding: 20px; border: 1px solid #cbd9ed; border-left: 5px solid var(--blue); border-radius: .9rem; background: #fbfdff; }
+    .exercise h3 { margin-top: 0; }
+    .choice { margin: .25rem .3rem .25rem 0; font-weight: 500; }
+    .feedback { min-height: 1.8em; margin: .8rem 0 0; font-weight: 700; }
+    .feedback.ok { color: var(--green); }
+    .feedback.ng { color: var(--orange); }
+    .answer { display: none; margin-top: .8rem; padding: .8rem 1rem; border-radius: .6rem; background: var(--green-soft); color: #176344; }
+    .answer.open { display: block; }
+    .sources { color: var(--muted); font-size: .9rem; }
+    footer { padding: 12px 0 40px; color: var(--muted); text-align: center; font-size: .85rem; }
+    @media (max-width: 720px) {
+      section { padding: 22px 18px; }
+      .hero { padding: 28px 22px; }
+      .grid, .mapping { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow span:not(:last-child)::after { content: "↓"; transform: translate(-50%, 25px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">POTEPAN / RAILS / DEBUGGING</p>
+      <h1>Railsデバッグ入門：<br>予約一覧の「nil」を追う</h1>
+      <p>「DBには1件あるのに、ビューではnilになる」「debugを置いたのに、どこで壊れたか分からない」という状態から、事実を一つずつ観測して原因を絞る。</p>
+      <div class="goal">今日のゴール：エラーを見たときに、値の流れ・失敗行・次の観測を自分で決められる</div>
+    </header>
+
+    <section>
+      <h2>1. デバッグとは何をすることか</h2>
+      <p class="lead">デバッグは、最初から原因を当てる作業ではありません。「どの値が、どの境界で、予想と違ったか」を小さな観測で狭める作業です。</p>
+      <div class="flow">
+        <span>症状を記録</span>
+        <span>失敗行を特定</span>
+        <span>値を観測</span>
+        <span>仮説を絞る</span>
+        <span>修正後に再確認</span>
+      </div>
+      <div class="callout success"><strong>覚える型：</strong>「考え方 → 行動・観測 → 目的 → 結果の解釈」の順で進める。debug文を増やすこと自体が目的ではない。</div>
+    </section>
+
+    <section>
+      <h2>2. 今回の予約一覧で、値はどこを通るか</h2>
+      <p>DBの行数と、ビュー内の変数は同じものではありません。間にController、コレクション、eachの1件が存在します。</p>
+      <div class="mapping">
+        <div><code>Reservation.count</code></div><div>DBにある予約行の数。ビューの変数の中身までは保証しない。</div>
+        <div><code>@reservations = Reservation.all</code></div><div>Controllerがビューへ渡す、予約の集合（Relation）。</div>
+        <div><code>each do |reservation|</code></div><div>集合から1件ずつ取り出した、その周回だけの変数。</div>
+        <div><code>reservation.hotel</code></div><div>予約に紐づくホテル。予約そのものとは別のオブジェクト。</div>
+        <div><code>reservation.hotel.avatar</code></div><div>さらにホテルの画像添付。ここにもnilや未添付という状態があり得る。</div>
+      </div>
+      <pre><code># app/controllers/reservations_controller.rb
+def index
+  @reservations = Reservation.all
+end
+
+# app/views/reservations/index.html.erb
+@reservations.each do |reservation|
+  reservation.hotel.avatar
+end</code></pre>
+      <div class="callout"><strong>重要：</strong><code>count == 1</code>は「集合に1件ある」という観測です。「その1件のhotelが存在する」「avatarが添付済み」「ビューのこの変数がその1件を指す」までは、別々に確認します。</div>
+    </section>
+
+    <section>
+      <h2>3. エラー文は「誰が」「何を」失敗したか読む</h2>
+      <div class="grid">
+        <article class="mini-card">
+          <h3><code>undefined method 'x' for nil:NilClass</code></h3>
+          <p><code>x</code>を呼び出そうとした左側の値が<code>nil</code>。まず「どの値がnilか」を探す。</p>
+        </article>
+        <article class="mini-card">
+          <h3><code>ArgumentError</code></h3>
+          <p>メソッドへ渡した引数の数や形が想定と違う可能性。値の中身より、呼び出し方を確認する。</p>
+        </article>
+        <article class="mini-card">
+          <h3><code>TypeError</code></h3>
+          <p>型の組み合わせが合わない可能性。文字列・整数・日付・nilなど、両側の型を確認する。</p>
+        </article>
+        <article class="mini-card">
+          <h3>スタックトレース</h3>
+          <p>呼び出しの道筋。最初に出てくる自分のファイルの行を、まず調査対象にする。</p>
+        </article>
+      </div>
+      <div class="callout danger"><strong>推測の注意：</strong>「Reservation.countが1だからreservationも必ず1件」とは言えない。エラー行に実際に書かれた式の、左側の値を確認する。</div>
+      <p class="sources">参考：<a href="https://guides.rubyonrails.org/debugging_rails_applications.html" target="_blank" rel="noreferrer">Rails Guides: Debugging Rails Applications</a></p>
+    </section>
+
+    <section>
+      <h2>4. 観測場所を選ぶ：ブラウザかログか</h2>
+      <p class="lead">同じ「値を見る」でも、どこで見るかで分かることが違います。</p>
+      <div class="grid">
+        <article class="mini-card">
+          <h3>ブラウザに出す：<code>debug</code></h3>
+          <p>Viewまで処理が到達したとき、HTMLの中にオブジェクトを表示できる。画面でその場の値を確認する。</p>
+          <pre><code>&lt;%= debug @reservations %&gt;
+
+&lt;% @reservations.each do |reservation| %&gt;
+  &lt;%= debug reservation %&gt;
+&lt;% end %&gt;</code></pre>
+        </article>
+        <article class="mini-card">
+          <h3>ログに出す：<code>Rails.logger.debug</code></h3>
+          <p>ControllerやViewの処理中に、サーバー側へ観測結果を残す。タグを付けると後で見つけやすい。</p>
+          <pre><code>Rails.logger.debug(
+  "[DEBUG-reservations] " \
+  "count=#{@reservations.size} " \
+  "ids=#{@reservations.map(&amp;:id).inspect}"
+)</code></pre>
+        </article>
+      </div>
+      <div class="callout"><strong>pとの違い：</strong><code>p value</code>はRubyの値を標準出力へ表示し、値自身を返す。<code>debug value</code>はRailsのView Helperで、ブラウザに見やすい形で出す。</div>
+      <p class="sources">参考：<a href="https://guides.rubyonrails.org/debugging_rails_applications.html#view-helpers-for-debugging" target="_blank" rel="noreferrer">Rails Guides: View Helpers for Debugging</a> / <a href="https://guides.rubyonrails.org/debugging_rails_applications.html#the-logger" target="_blank" rel="noreferrer">Rails Guides: The Logger</a></p>
+    </section>
+
+    <section>
+      <h2>5. 今回のコードでの正しい観測順</h2>
+      <ol class="timeline">
+        <li><strong>まずエラー画面を見る。</strong>例外名、メッセージ、最初の自分のファイルの行番号を記録する。</li>
+        <li><strong>Controllerの境界を見る。</strong><code>@reservations</code>が本当に取得されているか、クラス・件数・IDを確認する。</li>
+        <li><strong>eachの中で1件を見る。</strong><code>reservation</code>が何者か、IDがあるかを確認する。eachの外で同じ名前を見ても、1件の確認にはならない。</li>
+        <li><strong>ドットの連鎖を分解する。</strong><code>reservation.hotel.avatar</code>を一気に評価せず、reservation、hotel、avatarの順に確認する。</li>
+        <li><strong>添付状態を確認する。</strong>Active Storageの画像は、関連オブジェクトが存在することと、ファイルが添付済みであることを分けて見る。</li>
+        <li><strong>一つだけ変えて再現する。</strong>観測用の行を一度に増やしすぎず、どの観測がどの仮説を判定するか明確にする。</li>
+      </ol>
+      <pre><code># Controllerで集合を観測する例
+Rails.logger.debug "[DEBUG-reservations] class=#{@reservations.class.name}"
+Rails.logger.debug "[DEBUG-reservations] count=#{@reservations.size}"
+Rails.logger.debug "[DEBUG-reservations] ids=#{@reservations.map(&amp;:id).inspect}"
+
+# Viewではeachの中で、その周回のreservationを観測する
+&lt;% @reservations.each do |reservation| %&gt;
+  &lt;%= debug reservation %&gt;
+  &lt;%= debug reservation.hotel %&gt;
+  &lt;%= debug reservation.hotel.avatar.attached? %&gt;
+&lt;% end %&gt;</code></pre>
+      <div class="callout success"><strong>観測結果の解釈：</strong>reservationが<code>Reservation</code>なら、次は関連先を疑う。reservation自体がnilなら、eachの位置・変数名・Viewへ渡す処理を疑う。</div>
+    </section>
+
+    <section>
+      <h2>6. 現在のindex.html.erbを読む練習</h2>
+      <p>現在の対象は、次のファイルです。</p>
+      <pre><code>/Users/marutanirikuma/Desktop/ポテパン/rails/reservation-app/app/views/reservations/index.html.erb</code></pre>
+      <div class="probe">
+        <h3>観測ポイントA：eachの外か、中か</h3>
+        <p>デバッグ表示を置く位置が、調べたい値のスコープと一致しているかを確認する。<code>reservation</code>という名前は、eachのブロック引数として初めて1件を指す。</p>
+      </div>
+      <div class="probe">
+        <h3>観測ポイントB：エラー行はどの式か</h3>
+        <p>もしエラー行が画像表示なら、<code>reservation</code>がnilだと決めつけず、<code>reservation.hotel</code>、<code>reservation.hotel.avatar</code>も候補にする。</p>
+      </div>
+      <div class="probe">
+        <h3>観測ポイントC：ERBの出力記号</h3>
+        <p><code>&lt;%= ... %&gt;</code>は式の返り値をHTMLへ出力し、<code>&lt;% ... %&gt;</code>は処理だけを実行する。eachのような制御処理をHTMLへ出す必要があるかを考える。</p>
+      </div>
+      <p class="sources">関連：<a href="https://guides.rubyonrails.org/v7.2/active_record_basics.html#read" target="_blank" rel="noreferrer">Rails Guides: Active Record Basics - Read</a> / <a href="https://guides.rubyonrails.org/v7.2/active_storage_overview.html#has-one-attached" target="_blank" rel="noreferrer">Rails Guides: Active Storage - has_one_attached</a></p>
+    </section>
+
+    <section>
+      <h2>7. デバッグルート・シミュレーター</h2>
+      <p class="lead">実際のアプリには接続しません。観測結果から、次にどこを見るかを練習します。</p>
+      <div class="simulator">
+        <label for="observation">観測結果を選ぶ</label>
+        <select id="observation">
+          <option value="db">コンソールの Reservation.count は 1</option>
+          <option value="collection">Controllerの @reservations は1件、IDもある</option>
+          <option value="item">each内の reservation は Reservation、idもある</option>
+          <option value="hotel">reservation.hotel が nil</option>
+          <option value="avatar">reservation.hotel はあるが avatar は未添付</option>
+          <option value="line">エラーの自分の行がまだ分からない</option>
+        </select>
+        <div class="simulation-output" id="simulation-output"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>8. 演習問題（全8問）</h2>
+      <p class="lead">先に自分の答えを考えてから選択肢を押してください。正解後も、なぜその観測になるかを言葉にしてみます。</p>
+
+      <div class="exercise" data-answer="b">
+        <h3>演習1：countが教えること</h3>
+        <p><code>Reservation.count == 1</code>から確実に言えることは？</p>
+        <button class="choice" data-choice="a">ビューのreservationが必ず1件ある</button>
+        <button class="choice" data-choice="b">DB上のReservationの行数が1</button>
+        <button class="choice" data-choice="c">hotelとavatarも必ず存在する</button>
+        <p class="feedback"></p><div class="answer">countはDBの行数の観測です。Controllerの変数、eachの1件、関連先は別々に確認します。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>演習2：reservationを観測する場所</h3>
+        <p>eachで取り出した予約1件を調べる場所は？</p>
+        <button class="choice" data-choice="a">eachより前だけ</button>
+        <button class="choice" data-choice="b">Controllerの外側だけ</button>
+        <button class="choice" data-choice="c">eachのブロック内</button>
+        <p class="feedback"></p><div class="answer">ブロック引数reservationは、eachの周回の中で1件を指します。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>演習3：ブラウザ表示</h3>
+        <p>Viewまで到達したとき、オブジェクトをブラウザに見やすく表示するRailsの方法は？</p>
+        <button class="choice" data-choice="a"><code>debug</code> helper</button>
+        <button class="choice" data-choice="b"><code>Reservation.count</code></button>
+        <button class="choice" data-choice="c"><code>redirect_to</code></button>
+        <p class="feedback"></p><div class="answer">debug helperはオブジェクトをpreタグ内に表示するView用の観測手段です。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>演習4：nilエラーの読み方</h3>
+        <p><code>undefined method 'persisted?' for nil:NilClass</code>で最初に考えることは？</p>
+        <button class="choice" data-choice="a">DBが必ず空</button>
+        <button class="choice" data-choice="b">persisted?を呼ばれた側の値がnil</button>
+        <button class="choice" data-choice="c">persisted?を自分で定義する</button>
+        <p class="feedback"></p><div class="answer">メソッド名ではなく、メソッドを受け取った左側の値を特定します。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>演習5：reservationが正常な場合</h3>
+        <p>each内でreservationがReservation id=1と分かった。次の観測は？</p>
+        <button class="choice" data-choice="a">countを何度も実行する</button>
+        <button class="choice" data-choice="b">debug文を10個追加する</button>
+        <button class="choice" data-choice="c">エラー行で使う関連先や引数を調べる</button>
+        <p class="feedback"></p><div class="answer">対象が正常なら、次のドットの右側やメソッド引数へ境界を一つ進めます。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>演習6：ログの目的</h3>
+        <p>ログに<code>[DEBUG-reservations]</code>のような印を付ける目的は？</p>
+        <button class="choice" data-choice="a">自分の観測結果を後から見つけるため</button>
+        <button class="choice" data-choice="b">Railsのエラーを隠すため</button>
+        <button class="choice" data-choice="c">DBの値を変更するため</button>
+        <p class="feedback"></p><div class="answer">タグは観測結果の検索と、デバッグ行の後片付けに役立ちます。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>演習7：推測と観測</h3>
+        <p>「countが1だから問題ない」と思った次にすることは？</p>
+        <button class="choice" data-choice="a">その仮説で修正を確定する</button>
+        <button class="choice" data-choice="b">ビューへ渡った集合とeach内の1件を観測する</button>
+        <button class="choice" data-choice="c">テーブルを作り直す</button>
+        <p class="feedback"></p><div class="answer">DB、Controller、Viewの各境界で同じ値が保たれているかを確かめます。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>演習8：デバッグ終了</h3>
+        <p>原因を直して再現しなくなった後にすることは？</p>
+        <button class="choice" data-choice="a">debugを残しておく</button>
+        <button class="choice" data-choice="b">別の箇所も推測で修正する</button>
+        <button class="choice" data-choice="c">同じ操作で再確認し、不要な観測コードを消す</button>
+        <p class="feedback"></p><div class="answer">元の症状が消えたこと、別の問題を隠していないこと、観測コードが残っていないことを確認します。</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>9. 自分のアプリで実行するチェックリスト</h2>
+      <ol class="timeline">
+        <li>エラー画面から、例外名・メッセージ・最初の自分のファイル行をメモする。</li>
+        <li>その行の式を、左から右へ分解する。特にドットが続く式を一気に読まない。</li>
+        <li>Controllerで集合のクラス・件数・IDを一度だけログに出す。</li>
+        <li>Viewでは、調べたい変数が有効なスコープの中にdebugを置く。</li>
+        <li>観測結果を「正常だったもの」と「まだ未確認のもの」に分ける。</li>
+        <li>次の一手を一つだけ実行し、同じ操作で再現する。</li>
+        <li>修正後、元の操作を再実行して症状が消えたことを確認する。</li>
+        <li>タグ付きログと一時的なdebug表示を削除する。</li>
+      </ol>
+      <div class="callout success"><strong>最後に説明できれば合格：</strong>「どのリクエストで、どのControllerが、どの値をViewへ渡し、どの行のどの値が予想と違った。だから、そこを確認・修正した」と言える。</div>
+    </section>
+
+    <footer>
+      この教材は /Users/marutanirikuma/Desktop/ポテパン/rails/reservation-app の現在の予約機能を題材にした、アプリ本体とは別の復習用ページです。
+    </footer>
+  </main>
+
+  <script>
+    const observations = {
+      db: "分かること：DBに行が1件ある。\n次に見る：Controllerの@reservationsが同じDB・環境から取得されているか。",
+      collection: "分かること：Controllerから1件の集合がViewへ届いている。\n次に見る：each内のreservationのclassとid。",
+      item: "分かること：reservation自体はnilではない。\n次に見る：エラー行で使うhotel、avatar、または引数。",
+      hotel: "分かること：予約はあるが、関連するhotelの値がnil。\n次に見る：hotel_idの保存値、関連データ、関連の設定。",
+      avatar: "分かること：hotelはあるが、画像添付の状態が問題候補。\n次に見る：添付済みかどうかと、画像表示処理を分けて確認する。",
+      line: "分かること：まだ観測の入口が決まっていない。\n次に見る：スタックトレースの最初の自分のファイル行。"
+    };
+    const observationSelect = document.querySelector("#observation");
+    const simulationOutput = document.querySelector("#simulation-output");
+    function renderObservation() {
+      simulationOutput.textContent = observations[observationSelect.value];
+    }
+    observationSelect.addEventListener("change", renderObservation);
+    renderObservation();
+
+    document.querySelectorAll(".exercise").forEach((exercise) => {
+      const answer = exercise.dataset.answer;
+      const feedback = exercise.querySelector(".feedback");
+      const explanation = exercise.querySelector(".answer");
+      exercise.querySelectorAll(".choice").forEach((choice) => {
+        choice.addEventListener("click", () => {
+          const correct = choice.dataset.choice === answer;
+          feedback.textContent = correct ? "正解。理由も確認しましょう。" : "いったん再考。エラーの値の流れに戻ってみましょう。";
+          feedback.className = `feedback ${correct ? "ok" : "ng"}`;
+          if (correct) explanation.classList.add("open");
+        });
+      });
+    });
+  </script>
+</body>
+</html>

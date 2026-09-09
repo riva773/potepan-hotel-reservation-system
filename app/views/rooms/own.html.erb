@@ -1,0 +1,49 @@
+<div class="w-2/3 mx-auto mb-70" data-controller="room-modal" >
+  <h2 class="text-3xl mt-8 mb-6">登録済み一覧</h2>
+  <table class="w-full">
+    <thead class="border-b">
+      <tr>
+        <th class="font-bold text-md py-2 text-left">画像</th>
+        <th class="font-bold text-md py-2 text-left">施設名</th>
+        <th class="font-bold text-md py-2 text-left">紹介文</th>
+        <th class="font-bold text-md py-2 text-left">料金</th>
+        <th class="font-bold text-md py-2 text-left">作成日</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @rooms.each do |room| %>
+        <tr class="border-b border-gray-300">
+          <td class="py-4">
+          <%= image_tag room.avatar.attached? ? room.avatar : "default_room_visual.png", class: "h-20 w-28 object-cover" %>
+          </td>
+          <td class="py-4 text-blue-400"><%= link_to room.name, room %></td>
+          <td class="py-4"><%= room.description %></td>
+          <td class="py-4">¥<%= room.price.to_formatted_s(:delimited) %></td>
+          <td class="py-4"><%= l(room.created_at, format: :date) %></td>
+          <td class="py-4">
+            <div data-controller="dot" class="relative">
+              <button data-action="click->dot#toggle">
+                <img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット" class="cursor-pointer"></button>
+              <ul data-dot-target="menu" class="hidden shadow-xl p-3 absolute w-32 top-0 left-full bg-white">
+                <li class="pb-4"><%= link_to "施設を編集", edit_room_path(room) %></li>
+                <li class="text-red-500"><button type="button" data-action="click->room-modal#open" data-room-name="<%= room.name %>" data-room-price="<%= room.price.to_formatted_s(:delimited) %>" data-room-img="<%= room.avatar.attached? ? url_for(room.avatar) : asset_path("default_room_visual.png") %>" data-room-delete-path="<%= room_path(room) %>" class="cursor-pointer">施設を削除</button></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <div data-room-modal-target="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 ">
+    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+      <h2 class="text-xl">施設削除確認</h2>
+      <p data-room-modal-target="name"></p>
+      <p data-room-modal-target="price" class="mb-2"></p>
+      <img data-room-modal-target="img" src="" alt="施設画像"  class="mb-2">
+      <div class="flex justify-between">
+        <button type="button" data-action="click->room-modal#close" class="cursor-pointer text-xl">キャンセル</button>
+        <%= link_to "削除", "#", data: { room_modal_target: "destroyLink", turbo_method: :delete}, class: "text-red-500 text-xl" %>
+      </div>
+    </div>
+  </div>
+</div>

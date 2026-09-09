@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rails.logger.debugを使いこなす</title>
+  <style>
+    :root {
+      --ink: #1c2738;
+      --muted: #64748b;
+      --line: #d8e2ee;
+      --paper: #f5f8fc;
+      --card: #ffffff;
+      --blue: #2563eb;
+      --blue-soft: #eaf1ff;
+      --green: #14805a;
+      --green-soft: #e9f8f1;
+      --orange: #c96b18;
+      --orange-soft: #fff4e5;
+      --red: #b4233c;
+      --red-soft: #fff0f2;
+      --dark: #172235;
+      --shadow: 0 16px 46px rgba(28, 39, 56, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.75;
+    }
+    a { color: var(--blue); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .12em .35em; border-radius: .35em; background: #edf2f8; color: #30435d; }
+    pre { overflow-x: auto; margin: 1rem 0 0; padding: 1rem 1.1rem; border: 1px solid #283a57; border-radius: .8rem; background: var(--dark); color: #edf4ff; line-height: 1.65; font-size: .86rem; }
+    .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+    .hero { margin: 28px 0 24px; padding: 40px 44px; border-radius: 1.5rem; background: linear-gradient(135deg, #172235 0%, #263b61 62%, #315d9f 100%); color: white; box-shadow: var(--shadow); }
+    .eyebrow { margin: 0 0 .5rem; color: #bed2ff; font-weight: 700; letter-spacing: .08em; font-size: .78rem; }
+    h1, h2, h3 { line-height: 1.3; }
+    h1 { max-width: 850px; margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); }
+    h2 { margin: 0 0 1rem; font-size: 1.5rem; }
+    h3 { margin: 1.35rem 0 .5rem; font-size: 1.08rem; }
+    .hero p { max-width: 850px; margin: 1rem 0 0; color: #e1eaf8; }
+    .goal { display: inline-block; margin-top: 1.3rem; padding: .6rem .85rem; border: 1px solid rgba(255,255,255,.2); border-radius: .7rem; background: rgba(255,255,255,.1); }
+    section { margin: 24px 0; padding: 28px 32px; border: 1px solid var(--line); border-radius: 1.2rem; background: var(--card); box-shadow: var(--shadow); }
+    .lead { margin-top: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .mini-card { padding: 18px; border: 1px solid var(--line); border-radius: .9rem; background: #fbfcfe; }
+    .mini-card h3 { margin-top: 0; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 1.2rem 0; }
+    .flow span { position: relative; display: grid; place-items: center; min-height: 76px; padding: 8px; border-radius: .7rem; background: var(--blue-soft); color: #1e438d; text-align: center; font-size: .9rem; font-weight: 700; }
+    .flow span:not(:last-child)::after { content: "→"; position: absolute; transform: translateX(calc(50% + 6px)); color: var(--blue); font-size: 1.3rem; }
+    .callout { margin-top: 1rem; padding: 1rem 1.1rem; border-left: 5px solid var(--orange); border-radius: .7rem; background: var(--orange-soft); }
+    .success { border-left-color: var(--green); background: var(--green-soft); }
+    .danger { border-left-color: var(--red); background: var(--red-soft); }
+    .mapping { display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px 20px; align-items: center; margin-top: 1rem; }
+    .mapping div { padding: .65rem .8rem; border-radius: .6rem; background: #f4f7fb; }
+    .tag { display: inline-block; margin-right: .3rem; padding: .18rem .5rem; border-radius: 999px; background: var(--blue-soft); color: #1e438d; font-size: .78rem; font-weight: 700; }
+    .level { border-top: 4px solid var(--blue); }
+    .level.info { border-top-color: #5b8def; }
+    .level.warn { border-top-color: var(--orange); }
+    .level.error { border-top-color: var(--red); }
+    .level.fatal { border-top-color: #6f1d35; }
+    .probe { margin-top: 1rem; padding: 18px; border: 1px solid #cbd9ed; border-radius: .9rem; background: #fbfdff; }
+    .probe h3 { margin-top: 0; }
+    .probe ol { margin-bottom: 0; }
+    .lab { padding: 20px; border: 1px solid #cbd9ed; border-radius: .9rem; background: #fbfdff; }
+    .lab label { display: block; margin: .8rem 0 .35rem; font-weight: 700; }
+    select, input, button { cursor: pointer; padding: .55rem .75rem; border: 1px solid #b9c8dc; border-radius: .55rem; background: white; color: var(--ink); font: inherit; }
+    input { cursor: text; width: min(100%, 620px); }
+    button { font-weight: 700; }
+    button:hover, select:hover, input:focus { border-color: var(--blue); outline: none; }
+    .output { min-height: 112px; margin-top: 1rem; padding: 1rem; border-radius: .7rem; background: var(--dark); color: #e8eef8; white-space: pre-line; }
+    .exercise { margin-top: 18px; padding: 20px; border: 1px solid #cbd9ed; border-left: 5px solid var(--blue); border-radius: .9rem; background: #fbfdff; }
+    .exercise h3 { margin-top: 0; }
+    .choice { margin: .25rem .3rem .25rem 0; font-weight: 500; }
+    .feedback { min-height: 1.8em; margin: .8rem 0 0; font-weight: 700; }
+    .feedback.ok { color: var(--green); }
+    .feedback.ng { color: var(--orange); }
+    .answer { display: none; margin-top: .8rem; padding: .8rem 1rem; border-radius: .6rem; background: var(--green-soft); color: #176344; }
+    .answer.open { display: block; }
+    .sources { color: var(--muted); font-size: .9rem; }
+    footer { padding: 12px 0 40px; color: var(--muted); text-align: center; font-size: .85rem; }
+    @media (max-width: 720px) {
+      section { padding: 22px 18px; }
+      .hero { padding: 28px 22px; }
+      .grid, .mapping { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow span:not(:last-child)::after { content: "↓"; transform: translate(-50%, 25px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">POTEPAN / RAILS / LOGGER</p>
+      <h1>Rails.logger.debugを<br>自分で使いこなす</h1>
+      <p>「ログに出す」と覚えるだけで終わらせず、何を・どこで・どの粒度で記録し、出力結果から次に何を調べるかを自分で決められるようにする。</p>
+      <div class="goal">到達目標：Railsの処理を止めずに、値の流れと分岐をログで追跡できる</div>
+    </header>
+
+    <section>
+      <h2>0. この単元で身につけること</h2>
+      <p class="lead">ゴールは、<code>Rails.logger.debug</code>という名前を知ることではありません。次の一連の行動を、自分で選べることです。</p>
+      <div class="flow">
+        <span>症状を記録</span>
+        <span>境界を選ぶ</span>
+        <span>ログを書く</span>
+        <span>出力を読む</span>
+        <span>次を決める</span>
+      </div>
+      <div class="grid">
+        <div class="mini-card"><h3>知識</h3><p>Logger、ログレベル、文字列補間、<code>inspect</code>、タグ、環境ごとの出力先を説明できる。</p></div>
+        <div class="mini-card"><h3>技能</h3><p>Controller・View・Modelのどこに、どの値を、どの形式で記録するか選べる。</p></div>
+        <div class="mini-card"><h3>判断</h3><p>「値がない」「型が違う」「分岐が違う」「関連先がない」をログから区別できる。</p></div>
+        <div class="mini-card"><h3>習慣</h3><p>タグを付け、最小限の観測を行い、原因確認後に一時ログを削除できる。</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1. Loggerは「サーバー側の観測ノート」</h2>
+      <p>ブラウザの画面に表示する<code>debug</code>ヘルパーに対して、<code>Rails.logger.debug</code>はRailsサーバー側へメッセージを残します。</p>
+      <div class="mapping">
+        <div>ブラウザの<code>debug</code></div><div>Viewが最後まで生成できたとき、HTMLとして見える</div>
+        <div><code>p value</code></div><div>Rubyの標準出力へ表示し、実行環境によってターミナルなどで見る</div>
+        <div><code>Rails.logger.debug</code></div><div>Railsのログへ記録する。後で検索でき、画面が完成しなくても前段の記録を残せる</div>
+      </div>
+      <pre><code># Controller、Model、Viewなど、Railsの処理中で実行する
+Rails.logger.debug("[DEBUG-reservations] index started")</code></pre>
+      <div class="callout"><strong>考え方：</strong>画面がエラーで表示されないときは、ブラウザ表示ではなく、エラーが起きる前のサーバー側の境界へLoggerを置く。</div>
+      <p class="sources">参考：<a href="https://guides.rubyonrails.org/debugging_rails_applications.html#the-logger" target="_blank" rel="noreferrer">Rails Guides: The Logger</a></p>
+    </section>
+
+    <section>
+      <h2>2. 1行の構造を分解する</h2>
+      <pre><code>Rails.logger.debug("[DEBUG-index] count=#{@reservations.size} ids=#{@reservations.map(&amp;:id).inspect}")</code></pre>
+      <div class="mapping">
+        <div><code>Rails</code></div><div>Railsアプリケーション全体の入口</div>
+        <div><code>logger</code></div><div>ログへ書き込む担当オブジェクト</div>
+        <div><code>debug</code></div><div>詳細な開発用メッセージとして記録するメソッド</div>
+        <div><code>"..."</code></div><div>ログに書くメッセージ。固定文と値を組み合わせる</div>
+        <div><code>[DEBUG-index]</code></div><div>自分の観測を検索するための目印</div>
+        <div><code>#{...}</code></div><div>Rubyの式を文字列へ埋め込む</div>
+        <div><code>inspect</code></div><div>配列やHashなどの中身を、構造が分かる形で文字列化する</div>
+      </div>
+      <div class="grid">
+        <div class="mini-card"><h3>悪い観測</h3><pre><code>Rails.logger.debug("予約")</code></pre><p>何を確認したいログか、値が何だったか分からない。</p></div>
+        <div class="mini-card"><h3>良い観測</h3><pre><code>Rails.logger.debug(
+  "[DEBUG-index] " \
+  "count=#{@reservations.size} " \
+  "ids=#{@reservations.map(&amp;:id).inspect}"
+)</code></pre><p>場所・件数・IDが分かり、次の確認につながる。</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. 「何を出すか」は質問から決める</h2>
+      <p class="lead">先にログ文を書かず、知りたいことを質問にします。その質問に必要な最小限の値だけを出します。</p>
+      <div class="mapping">
+        <div>集合は届いたか？</div><div>クラス・件数・ID</div>
+        <div>1件は何者か？</div><div>クラス・ID・主な外部キー</div>
+        <div>値が空か？</div><div>値そのもの・<code>nil?</code>・必要なら型</div>
+        <div>関連先があるか？</div><div>関連先のID・関連先のクラス</div>
+        <div>分岐のどちらへ入ったか？</div><div>分岐名・条件値・成功／失敗</div>
+        <div>保存できたか？</div><div>ID・成功結果・<code>errors.full_messages</code></div>
+      </div>
+      <pre><code># 値の意味を残す。巨大なオブジェクトを毎回丸ごと出さない
+Rails.logger.debug(
+  "[DEBUG-create] " \
+  "reservation_id=#{@reservation.id.inspect} " \
+  "hotel_id=#{@reservation.hotel_id.inspect} " \
+  "sum_price=#{@reservation.sum_price.inspect}"
+)</code></pre>
+      <div class="callout success"><strong>最小観測の原則：</strong>1回のログで全部を出そうとせず、「この仮説を判定するために必要な値は何か」を一つずつ決める。</div>
+    </section>
+
+    <section>
+      <h2>4. 値の型と形を見えるようにする</h2>
+      <p>ログで値を見るときは、「表示された文字」だけでなく、Rubyが何として扱っているかも必要です。</p>
+      <pre><code>Rails.logger.debug "[DEBUG-value] value=#{value.inspect}"
+Rails.logger.debug "[DEBUG-value] class=#{value.class.name}"
+Rails.logger.debug "[DEBUG-value] nil=#{value.nil?}"
+
+# 配列やHashはinspectで構造を残す
+Rails.logger.debug "[DEBUG-rows] rows=#{rows.inspect}"
+Rails.logger.debug "[DEBUG-params] keys=#{params.to_unsafe_h.keys.inspect}"</code></pre>
+      <div class="callout danger"><strong>注意：</strong>パスワード、認証トークン、カード情報、個人情報をそのままログへ出さない。Params全体の記録も、何が含まれるか確認してから行う。</div>
+      <div class="grid">
+        <div class="mini-card"><h3><code>nil</code></h3><p>値が存在しない状態。<code>nil?</code>や<code>inspect</code>で明示的に確認する。</p></div>
+        <div class="mini-card"><h3>空文字列</h3><p><code>""</code>はnilではない。画面入力では「空」に見えても別の値である。</p></div>
+        <div class="mini-card"><h3>文字列の数字</h3><p><code>"2"</code>は整数<code>2</code>とは違う。HTTPパラメータは文字列として届くことがある。</p></div>
+        <div class="mini-card"><h3>Relationと配列</h3><p><code>Reservation.all</code>は複数件を扱うRelation。1件の<code>reservation</code>とは役割が違う。</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. ログレベルを使い分ける</h2>
+      <p>Loggerには重要度の段階があります。デバッグ中の詳細情報は通常<code>debug</code>ですが、すべてを同じレベルで出すわけではありません。</p>
+      <div class="grid">
+        <article class="mini-card level"><h3><code>debug</code></h3><p>開発中に値や処理順を細かく見る。通常、最も詳細な観測。</p></article>
+        <article class="mini-card level info"><h3><code>info</code></h3><p>通常の処理が進んだことなど、運用上も意味がある情報。</p></article>
+        <article class="mini-card level warn"><h3><code>warn</code></h3><p>処理は続けられるが、想定外・注意が必要な状態。</p></article>
+        <article class="mini-card level error"><h3><code>error</code></h3><p>処理に失敗した、またはユーザー操作を完了できなかった状態。</p></article>
+        <article class="mini-card level fatal"><h3><code>fatal</code></h3><p>アプリケーションを継続できない重大な状態。</p></article>
+        <article class="mini-card"><h3>表示されないとき</h3><p>環境のログレベルが<code>info</code>以上なら、<code>debug</code>が出ないことがある。Loggerの設定と実行環境を確認する。</p></article>
+      </div>
+      <pre><code>Rails.logger.debug("[DEBUG-index] detailed value")
+Rails.logger.info("[INFO-index] page rendered")
+Rails.logger.warn("[WARN-create] unexpected input")
+Rails.logger.error("[ERROR-create] save failed")</code></pre>
+      <p class="sources">参考：<a href="https://guides.rubyonrails.org/debugging_rails_applications.html#log-levels" target="_blank" rel="noreferrer">Rails Guides: Log Levels</a></p>
+    </section>
+
+    <section>
+      <h2>6. どこに置くか：境界を記録する</h2>
+      <div class="flow">
+        <span>リクエスト到着</span>
+        <span>DB取得後</span>
+        <span>加工・計算後</span>
+        <span>分岐の直前</span>
+        <span>保存・render後</span>
+      </div>
+      <div class="grid">
+        <div class="mini-card"><h3>Controller</h3><p>リクエスト、params、DB取得結果、分岐、render／redirectの前後を調べる。</p></div>
+        <div class="mini-card"><h3>Model</h3><p>値の計算、validation、callback、保存前後を調べる。</p></div>
+        <div class="mini-card"><h3>View</h3><p>Viewまで届いた値、eachの1件、関連先、画像やリンク生成の直前を調べる。</p></div>
+        <div class="mini-card"><h3>境界の考え方</h3><p>「どこからどこへ値が渡ったか」を区切る。全行にログを置かない。</p></div>
+      </div>
+      <pre><code>def index
+  Rails.logger.debug "[DEBUG-index] start"
+  @reservations = Reservation.all
+  Rails.logger.debug(
+    "[DEBUG-index] loaded count=#{@reservations.size} " \
+    "ids=#{@reservations.map(&amp;:id).inspect}"
+  )
+end</code></pre>
+      <div class="callout"><strong>今回の予約一覧への適用：</strong>まずControllerで<code>@reservations</code>の集合を確認し、次にViewのeach内で1件の<code>reservation</code>を確認する。その後、必要なら<code>hotel</code>、<code>avatar</code>へ一段ずつ進む。</div>
+    </section>
+
+    <section>
+      <h2>7. ログの読み方：行を足すだけで終わらせない</h2>
+      <p>ログを出したら、次の4列に分けて読みます。</p>
+      <div class="mapping">
+        <div>時系列</div><div>どのログが先に出たか。処理がどこまで進んだか。</div>
+        <div>場所</div><div>タグ、Controller／Model／View、IDなど。</div>
+        <div>値</div><div>件数、型、nil、ID、分岐条件。</div>
+        <div>未確認</div><div>正常だったものと、まだ疑うべきものを分ける。</div>
+      </div>
+      <pre><code>[DEBUG-index] start
+[DEBUG-index] loaded count=1 ids=[7]
+[DEBUG-view] reservation_class=Reservation id=7 hotel_id=3
+[DEBUG-view] hotel_class=Hotel id=3
+# この後のログがない場合、次の処理の直前か、その処理自体を調べる</code></pre>
+      <div class="callout success"><strong>解釈の例：</strong>このログから「DBに1件ある」だけでなく、「Controllerで1件を取得し、Viewのeach内でもReservation id=7として届いた」まで確認できる。次は未確認の関連や画像処理へ進む。</div>
+    </section>
+
+    <section>
+      <h2>8. 実際のログを読むための操作</h2>
+      <div class="probe">
+        <h3>開発サーバーのターミナル</h3>
+        <p>サーバーを起動しているターミナルに、リクエストログとLoggerの出力が流れることがあります。まずタグで見つけます。</p>
+        <pre><code>rg "\[DEBUG-index\]" log/development.log</code></pre>
+        <p><code>rg</code>は指定した文字列をログファイルから検索します。何も出なければ、タグ・環境・ログレベル・実行されたアクションを確認します。</p>
+      </div>
+      <div class="probe">
+        <h3>新しいログを追いかける</h3>
+        <pre><code>tail -f log/development.log</code></pre>
+        <p><code>tail -f</code>はファイル末尾を表示し続けます。ブラウザで操作し、タグ付きの新しい行が追加されるかを確認します。終了は<code>Ctrl + C</code>です。</p>
+      </div>
+      <div class="probe">
+        <h3>ログが出ないときの順番</h3>
+        <ol>
+          <li>そのリクエストが目的のController／actionへ届いたか。</li>
+          <li>Loggerの行より前で例外が起きていないか。</li>
+          <li>タグを検索しているファイルが、実際の環境のログか。</li>
+          <li>ログレベルがdebugを表示する設定か。</li>
+          <li>コードを変更した後、リクエストをもう一度送ったか。</li>
+        </ol>
+      </div>
+      <p class="sources">参考：<a href="https://guides.rubyonrails.org/debugging_rails_applications.html#the-logger" target="_blank" rel="noreferrer">Rails Guides: The Logger</a> / <a href="https://guides.rubyonrails.org/debugging_rails_applications.html#sending-messages" target="_blank" rel="noreferrer">Rails Guides: Sending Messages</a></p>
+    </section>
+
+    <section>
+      <h2>9. 実践ラボ：ログ文を組み立てる</h2>
+      <p class="lead">目的を選ぶと、必要な値・置き場所・読み方が表示されます。これは実際のアプリへは接続しません。</p>
+      <div class="lab">
+        <label for="lab-question">確認したいこと</label>
+        <select id="lab-question">
+          <option value="collection">Controllerで取得した集合を確認したい</option>
+          <option value="item">each内の1件を確認したい</option>
+          <option value="association">hotel関連を確認したい</option>
+          <option value="branch">保存の成功／失敗を確認したい</option>
+          <option value="type">TypeErrorの値の型を確認したい</option>
+        </select>
+        <div class="output" id="lab-output"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>10. 問題集（全16問）</h2>
+      <p class="lead">1〜8問は選択式、9〜16問は自分でログ文を考える練習です。先に答えを決めてからボタンを押してください。</p>
+
+      <div class="exercise" data-answer="b">
+        <h3>問題1：Loggerの役割</h3>
+        <p><code>Rails.logger.debug</code>の主な役割は？</p>
+        <button class="choice" data-choice="a">DBのデータを自動修正する</button>
+        <button class="choice" data-choice="b">サーバー側の処理中の情報をログへ記録する</button>
+        <button class="choice" data-choice="c">ブラウザのHTMLを必ず完成させる</button>
+        <p class="feedback"></p><div class="answer">Loggerは観測情報を記録します。値を変更したり、エラーを解決したりする機能ではありません。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>問題2：画面が表示されないとき</h3>
+        <p>Viewの後半でエラーが起き、ブラウザにdebug結果が出ない。最初の観測場所は？</p>
+        <button class="choice" data-choice="a">エラーが起きる前のControllerやログ</button>
+        <button class="choice" data-choice="b">ブラウザのHTMLだけ</button>
+        <button class="choice" data-choice="c">DBを削除して再作成する</button>
+        <p class="feedback"></p><div class="answer">View全体が完成しないと途中のHTMLは届きません。サーバー側の前段をLoggerで観測します。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>問題3：タグの目的</h3>
+        <p><code>[DEBUG-index]</code>を付ける一番の目的は？</p>
+        <button class="choice" data-choice="a">ログレベルを変更する</button>
+        <button class="choice" data-choice="b">ユーザーに表示する</button>
+        <button class="choice" data-choice="c">自分の観測を検索しやすくする</button>
+        <p class="feedback"></p><div class="answer">タグはログの検索、時系列の追跡、一時ログの削除に役立ちます。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>問題4：配列の表示</h3>
+        <p>配列<code>ids</code>の中身を構造が分かる形で記録するには？</p>
+        <button class="choice" data-choice="a">ids.to_i</button>
+        <button class="choice" data-choice="b">ids.inspect</button>
+        <button class="choice" data-choice="c">ids.persisted?</button>
+        <p class="feedback"></p><div class="answer">inspectは配列やHashなどの構造を含めて確認しやすい文字列にします。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>問題5：countと1件</h3>
+        <p><code>@reservations.size</code>を出した次に、each内の値を調べる理由は？</p>
+        <button class="choice" data-choice="a">集合と、その中の1件は別の値だから</button>
+        <button class="choice" data-choice="b">sizeが遅いから</button>
+        <button class="choice" data-choice="c">eachはDBを削除するから</button>
+        <p class="feedback"></p><div class="answer">集合が1件でも、1件の関連先や属性が正常とは限りません。境界を分けて観測します。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>問題6：型の確認</h3>
+        <p>値がnilかどうかだけでなく型も知りたい。何を追加する？</p>
+        <button class="choice" data-choice="a">value.count</button>
+        <button class="choice" data-choice="b">value.url</button>
+        <button class="choice" data-choice="c">value.class.name</button>
+        <p class="feedback"></p><div class="answer">値そのものとクラスを組み合わせると、nil・String・Integer・Dateなどを区別できます。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>問題7：ログレベル</h3>
+        <p>開発中に詳細な値を調べるための標準的なレベルは？</p>
+        <button class="choice" data-choice="a">fatal</button>
+        <button class="choice" data-choice="b">debug</button>
+        <button class="choice" data-choice="c">error</button>
+        <p class="feedback"></p><div class="answer">debugは詳細な開発用情報に使います。warnやerrorは注意・失敗の意味を持たせます。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>問題8：ログが出ない</h3>
+        <p>Loggerの行を書いたのに検索結果がない。最初に確認しないものは？</p>
+        <button class="choice" data-choice="a">すぐに別のDBを作る</button>
+        <button class="choice" data-choice="b">タグ・ログファイル・実行したリクエスト</button>
+        <button class="choice" data-choice="c">ログレベル</button>
+        <p class="feedback"></p><div class="answer">ログがないだけでDBを作り直す必要はありません。まず記録先と実行経路を確認します。</div>
+      </div>
+
+      <div class="exercise write" data-key="collection">
+        <h3>問題9：集合のログを書く</h3>
+        <p>Controllerで<code>@reservations</code>の件数とID一覧を確認したい。必要な情報を含むLoggerの1行を考えてから表示を押してください。</p>
+        <input type="text" placeholder="自分のRails.logger.debug文を書く">
+        <button class="reveal">観点と例を表示</button>
+        <p class="feedback"></p><div class="answer">観点：タグ、size、ID一覧。例：<code>Rails.logger.debug "[DEBUG-index] count=#{@reservations.size} ids=#{@reservations.map(&amp;:id).inspect}"</code></div>
+      </div>
+
+      <div class="exercise write" data-key="item">
+        <h3>問題10：each内の1件を書く</h3>
+        <p>Viewのeach内で、reservationのクラス・ID・hotel_idを確認するログを考えてください。</p>
+        <input type="text" placeholder="自分のLogger文を書く">
+        <button class="reveal">観点と例を表示</button>
+        <p class="feedback"></p><div class="answer">観点：eachの内側、class.name、id、hotel_id。例：<code>Rails.logger.debug "[DEBUG-view] class=#{reservation.class.name} id=#{reservation.id.inspect} hotel_id=#{reservation.hotel_id.inspect}"</code></div>
+      </div>
+
+      <div class="exercise write" data-key="association">
+        <h3>問題11：関連を一段ずつ追う</h3>
+        <p><code>reservation.hotel.avatar</code>が怪しい。まずreservationとhotelを分けて観測するログを考えてください。</p>
+        <input type="text" placeholder="一気にavatarを呼ばないログを書く">
+        <button class="reveal">観点と例を表示</button>
+        <p class="feedback"></p><div class="answer">観点：reservationのhotel_idを確認し、hotel取得後にhotelのIDやクラスを見る。関連を一つの長い式で済ませない。</div>
+      </div>
+
+      <div class="exercise write" data-key="branch">
+        <h3>問題12：成功／失敗の分岐を書く</h3>
+        <p><code>@reservation.save</code>の成功・失敗のどちらに入ったかを後から読めるログを考えてください。</p>
+        <input type="text" placeholder="成功と失敗を区別できるログを書く">
+        <button class="reveal">観点と例を表示</button>
+        <p class="feedback"></p><div class="answer">観点：成功側と失敗側でタグや文言を変える。失敗側では<code>errors.full_messages</code>も確認する。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>問題13：最小観測</h3>
+        <p>原因が分からないときのログの増やし方として適切なのは？</p>
+        <button class="choice" data-choice="a">全変数を毎行出す</button>
+        <button class="choice" data-choice="b">ログを出さずに推測で修正する</button>
+        <button class="choice" data-choice="c">仮説を判定する最小の値を一つずつ出す</button>
+        <p class="feedback"></p><div class="answer">ログが多すぎると時系列と重要な値が埋もれます。仮説ごとに必要な観測を選びます。</div>
+      </div>
+
+      <div class="exercise" data-answer="b">
+        <h3>問題14：安全なログ</h3>
+        <p>ログへ出す情報として最も注意が必要なのは？</p>
+        <button class="choice" data-choice="a">予約のID</button>
+        <button class="choice" data-choice="b">パスワードや認証トークン</button>
+        <button class="choice" data-choice="c">配列の件数</button>
+        <p class="feedback"></p><div class="answer">ログは保存・共有される可能性があります。秘密情報や個人情報は記録しない、またはマスキングします。</div>
+      </div>
+
+      <div class="exercise" data-answer="a">
+        <h3>問題15：ログの時系列</h3>
+        <p>「Aのログはあるが、Bのログがない」から考えられることは？</p>
+        <button class="choice" data-choice="a">AとBの間で処理が止まったか、Bが実行されていない</button>
+        <button class="choice" data-choice="b">DBが必ず空になった</button>
+        <button class="choice" data-choice="c">Aの値が必ず正しい</button>
+        <p class="feedback"></p><div class="answer">ログの間を新しい境界として調べます。Aがあることは、B以降の成功を保証しません。</div>
+      </div>
+
+      <div class="exercise" data-answer="c">
+        <h3>問題16：デバッグ終了</h3>
+        <p>原因を確認して修正した後のLoggerの扱いは？</p>
+        <button class="choice" data-choice="a">すべて残す</button>
+        <button class="choice" data-choice="b">ログレベルをfatalにする</button>
+        <button class="choice" data-choice="c">一時ログを削除し、必要な運用ログだけ残す</button>
+        <p class="feedback"></p><div class="answer">一時的な詳細ログはノイズや情報漏えいの原因になります。タグで検索して片付けます。</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>11. 自力で使えるかの確認</h2>
+      <p>次の状況で、Loggerを使う場所・値・レベルを口頭またはメモで説明できれば、この単元の入口を卒業です。</p>
+      <ol>
+        <li>ブラウザには何も表示されず、Viewの後半でエラーが出る。</li>
+        <li>Controllerの<code>@reservations</code>は1件だが、画像表示で失敗する。</li>
+        <li>保存処理が成功したか失敗したか分からない。</li>
+        <li>ログを出したが、どのリクエストのものか分からない。</li>
+        <li>debugログが開発環境で見つからない。</li>
+      </ol>
+      <div class="callout success"><strong>説明の型：</strong>「私は○○を知りたいので、△△の直後に、タグ付きで□□（値・型・ID）をdebugレベルで出す。ログにAがあればBを調べ、なければCを確認する」と説明する。</div>
+    </section>
+
+    <section>
+      <h2>12. 実践後の片付け</h2>
+      <ol>
+        <li>タグで自分の一時ログを検索する。</li>
+        <li>必要な観測結果をメモする。</li>
+        <li>不要なLogger行とViewのdebug表示を削除する。</li>
+        <li>同じ操作を再実行して、元の症状が消えたことを確認する。</li>
+        <li>ログに秘密情報が残っていないか確認する。</li>
+      </ol>
+      <pre><code>rg "\[DEBUG-(index|view|create)\]" app log
+# 見つかった一時ログを確認してから削除する</code></pre>
+      <p class="sources">関連教材：<a href="rails-debugging-reservations-index-lesson.html">Railsデバッグ入門：予約一覧のnilを追う</a></p>
+    </section>
+
+    <footer>
+      この教材は /Users/marutanirikuma/Desktop/ポテパン/rails/reservation-app の現在の予約機能を題材にした、アプリ本体とは別の復習用ページです。教材内のコード例は観測の練習用で、アプリへ自動適用されません。
+    </footer>
+  </main>
+
+  <script>
+    const labData = {
+      collection: "置き場所：ReservationsController#index の @reservations = Reservation.all の直後\n出す値：class、size、ids\nログ例：Rails.logger.debug(\"[DEBUG-index] count=#{@reservations.size} ids=#{@reservations.map(&:id).inspect}\")\n読み方：件数とIDが取れたら、次はViewのeach内へ進む。",
+      item: "置き場所：index.html.erb の each ブロックの内側、最初の複雑な処理の直前\n出す値：reservation.class.name、reservation.id、reservation.hotel_id\nログ例：Rails.logger.debug(\"[DEBUG-view] class=#{reservation.class.name} id=#{reservation.id.inspect} hotel_id=#{reservation.hotel_id.inspect}\")\n読み方：Reservationなら、次は関連先やエラー行の式を調べる。",
+      association: "置き場所：reservation.hotel を使う直前と、その後\n出す値：reservation.hotel_id、hotel.class.name、hotel.id、avatarの添付状態\n考え方：reservation → hotel → avatar の順に一段ずつ観測する。\n読み方：予約が正常でも関連先は別の未確認事項。",
+      branch: "置き場所：save の直前、成功側、失敗側\n出す値：対象ID、成功／失敗、失敗時のerrors.full_messages\nログ例：成功と失敗でタグまたは文言を変える。\n読み方：どちらの分岐に入ったかを時系列で確認する。",
+      type: "置き場所：TypeErrorが起きる式の直前。まず式の左側の値\n出す値：value.inspect、value.class.name、value.nil?\n考え方：文字列・整数・日付・nilを区別する。\n読み方：型が予想と違えば、値が作られた一つ前の境界へ戻る。"
+    };
+    const labSelect = document.querySelector("#lab-question");
+    const labOutput = document.querySelector("#lab-output");
+    function renderLab() {
+      labOutput.textContent = labData[labSelect.value];
+    }
+    labSelect.addEventListener("change", renderLab);
+    renderLab();
+
+    document.querySelectorAll(".exercise:not(.write)").forEach((exercise) => {
+      const answer = exercise.dataset.answer;
+      const feedback = exercise.querySelector(".feedback");
+      const explanation = exercise.querySelector(".answer");
+      exercise.querySelectorAll(".choice").forEach((choice) => {
+        choice.addEventListener("click", () => {
+          const correct = choice.dataset.choice === answer;
+          feedback.textContent = correct ? "正解。理由も確認しましょう。" : "いったん再考。ログの目的と値の流れに戻りましょう。";
+          feedback.className = `feedback ${correct ? "ok" : "ng"}`;
+          if (correct) explanation.classList.add("open");
+        });
+      });
+    });
+
+    document.querySelectorAll(".exercise.write").forEach((exercise) => {
+      const reveal = exercise.querySelector(".reveal");
+      const feedback = exercise.querySelector(".feedback");
+      const explanation = exercise.querySelector(".answer");
+      reveal.addEventListener("click", () => {
+        feedback.textContent = "観点を確認してください。自分の文と、必要な値・置き場所が一致しているか比べます。";
+        feedback.className = "feedback ok";
+        explanation.classList.add("open");
+      });
+    });
+  </script>
+</body>
+</html>

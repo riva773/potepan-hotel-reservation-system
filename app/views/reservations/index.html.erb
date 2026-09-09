@@ -1,0 +1,61 @@
+<div class="w-2/3 mx-auto mb-70" data-controller="reservation-modal">
+  <h2 class="text-3xl mt-8 mb-6">予約済み一覧</h2>
+  <table class="w-full">
+    <thead class="border-b">
+      <tr>
+        <th class="font-bold text-md py-2 text-left">画像</th>
+        <th class="font-bold text-md py-2 text-left">施設名</th>
+        <th class="font-bold text-md py-2 text-left">紹介文</th>
+        <th class="font-bold text-md py-2 text-left">合計料金</th>
+        <th class="font-bold text-md py-2 text-left">チェックイン</th>
+        <th class="font-bold text-md py-2 text-left">チェックアウト</th>
+        <th class="font-bold text-md py-2 text-left">予約確定日時</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @reservations.each do |reservation| %>
+        <tr class="border-b border-gray-300">
+          <td class="py-4">
+          <%= image_tag reservation.room.avatar.attached? ? reservation.room.avatar : "default_room_visual.png", class: "h-20 w-28 object-cover" %>
+          </td>
+          <td class="py-4 text-blue-400"><%= link_to reservation.room.name, room_path(reservation.room) %></td>
+          <td class="py-4"><%= reservation.room.description %></td>
+          <td class="py-4">¥<%= reservation.sum_price.to_formatted_s(:delimited) %></td>
+          <td class="py-4"><%= l(reservation.check_in, format: :default) %></td>
+          <td class="py-4"><%= l(reservation.check_out, format: :default) %></td>
+          <td class="py-4"><%= l(reservation.created_at, format: :default) %></td>
+          <td class="py-4">
+            <div data-controller="dot" class="relative">
+              <button data-action="click->dot#toggle">
+                <img src="https://rails-02-sample.herokuapp.com/assets/icons/three-dot-menu-0c042cde96cc73e058e97d09a24944eb2914eb8c152d418dc6fc6964251fdaa2.svg" alt="3点ドット" class="cursor-pointer">
+              </button>
+              <ul data-dot-target="menu" class="hidden shadow-xl p-3 absolute w-32 top-0 left-full bg-white">
+                <li class="pb-4"><%= link_to "再予約", edit_reservation_path(reservation) %></li>
+                <li><button data-action="click->reservation-modal#open" class="text-red-500 cursor-pointer" type="button" data-reservation-room="<%= reservation.room.name %>" data-reservation-sum-price= "<%= reservation.sum_price.to_formatted_s(:delimited) %>" data-reservation-check-in = "<%= l(reservation.check_in, format: :default) %>" data-reservation-check-out = "<%= l(reservation.check_out,format: :default) %>"data-reservation-attendance = "<%= reservation.attendance %>" data-reservation-img = "<%= reservation.room.avatar.attached? ? url_for(reservation.room.avatar) : asset_path("default_room_visual.png") %>" data-reservation-delete-path="<%= reservation_path(reservation) %>">予約を削除</button></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <div class="fixed inset-0 hidden z-50 bg-black/50 flex items-center justify-center" data-reservation-modal-target="modal">
+    <div class="bg-white p-8">
+      <h2 class="text-2xl mb-2">予約削除</h2>
+      <p data-reservation-modal-target="name"></p>
+      <p data-reservation-modal-target="sumPrice"></p>
+      <p data-reservation-modal-target="checkIn"></p>
+      <p data-reservation-modal-target="checkOut"></p>
+      <p data-reservation-modal-target="attendance"></p>
+      <img data-reservation-modal-target="img" src="" alt="ホテルの画像" class="mb-2">
+      <div class="flex justify-between">
+        <button type="button" data-action="click->reservation-modal#close" class="cursor-pointer text-xl">キャンセル</button>
+        <%= link_to "削除", "#", data: {
+          reservation_modal_target: "destroyLink",
+          turbo_method: :delete
+        }, class: "text-red-500 text-xl" %>
+      </div>
+    </div>
+
+  </div>
+</div>

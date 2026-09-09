@@ -1,0 +1,37 @@
+ja:
+  activerecord:
+    attributes:
+      reservation:
+        check_in: "チェックイン"
+        check_out: "チェックアウト"
+        attendance: "人数"
+      user:
+        email: "メールアドレス"
+        password: "パスワード"
+        password_confirmation: "パスワード確認"
+        remember_me: "ログインを記憶"
+        name: "ユーザー名"
+        avatar: "アイコン画像"
+
+  date:
+    formats:
+      default: "%Y/%m/%d"
+  time:
+    formats:
+      default: "%Y/%m/%d %H:%M"
+      date: "%Y/%m/%d"
+  devise:
+    sessions:
+      signed_out: "ログアウトしました。"
+      signed_in: "ログインしました。"
+      user:
+        signed_out: "ログアウトしました。"
+        signed_in: "ログインしました。"
+    registrations:
+      signed_up: "会員登録しました。"
+      user:
+        signed_up: "会員登録しました。"
+    failure:
+      invalid: "メールアドレスまたはパスワードが正しくありません。"
+      unauthenticated: "ログインしてください。"
+

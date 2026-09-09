@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stimulusで作るドロップダウン入門</title>
+  <style>
+    :root {
+      --ink: #192334;
+      --muted: #5f6d80;
+      --line: #dbe3ed;
+      --paper: #f7f9fc;
+      --card: #ffffff;
+      --blue: #2563eb;
+      --blue-soft: #eaf1ff;
+      --green: #11845b;
+      --green-soft: #e9f8f1;
+      --orange: #ea7b28;
+      --shadow: 0 18px 50px rgba(25, 35, 52, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      line-height: 1.75;
+    }
+    a { color: var(--blue); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code {
+      padding: .12em .35em;
+      border-radius: .35em;
+      background: #eef2f7;
+      color: #30435d;
+    }
+    pre {
+      overflow-x: auto;
+      margin: 1rem 0 0;
+      padding: 1rem 1.1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: .8rem;
+      background: #172235;
+      color: #e8eef8;
+      line-height: 1.6;
+      font-size: .86rem;
+    }
+    .shell { width: min(1020px, calc(100% - 32px)); margin: 0 auto; }
+    .hero {
+      margin: 28px 0 24px;
+      padding: 38px 42px;
+      border-radius: 1.5rem;
+      background: linear-gradient(135deg, #172235 0%, #263b61 65%, #315d9f 100%);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { margin: 0 0 .5rem; color: #bcd2ff; font-weight: 700; letter-spacing: .08em; font-size: .78rem; }
+    h1, h2, h3 { line-height: 1.3; }
+    h1 { max-width: 720px; margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); }
+    h2 { margin: 0 0 1rem; font-size: 1.55rem; }
+    h3 { margin: 1.4rem 0 .55rem; font-size: 1.1rem; }
+    .hero p { max-width: 720px; margin: 1rem 0 0; color: #e1eaf8; }
+    .hero .goal { display: inline-block; margin-top: 1.3rem; padding: .55rem .8rem; border: 1px solid rgba(255,255,255,.2); border-radius: .7rem; background: rgba(255,255,255,.1); }
+    section { margin: 24px 0; padding: 28px 32px; border: 1px solid var(--line); border-radius: 1.2rem; background: var(--card); box-shadow: var(--shadow); }
+    .lead { margin-top: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .mini-card { padding: 18px; border: 1px solid var(--line); border-radius: .9rem; background: #fbfcfe; }
+    .mini-card h3 { margin-top: 0; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 1.2rem 0; }
+    .flow span { display: grid; place-items: center; min-height: 74px; padding: 8px; border-radius: .7rem; background: var(--blue-soft); color: #1e438d; text-align: center; font-size: .9rem; font-weight: 700; }
+    .flow span:not(:last-child)::after { content: "→"; position: absolute; transform: translateX(calc(50% + 6px)); color: var(--blue); font-size: 1.3rem; }
+    .flow span { position: relative; }
+    .mapping { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; align-items: center; margin-top: 1rem; }
+    .mapping div { padding: .6rem .8rem; border-radius: .6rem; background: #f4f7fb; }
+    .tag { display: inline-block; margin-right: .3rem; padding: .18rem .5rem; border-radius: 999px; background: var(--blue-soft); color: #1e438d; font-size: .78rem; font-weight: 700; }
+    .exercise { margin-top: 18px; padding: 20px; border: 1px solid #cbd9ed; border-left: 5px solid var(--blue); border-radius: .9rem; background: #fbfdff; }
+    .exercise h3 { margin-top: 0; }
+    button, select {
+      font: inherit;
+    }
+    button {
+      cursor: pointer;
+      padding: .55rem .85rem;
+      border: 1px solid #b9c8dc;
+      border-radius: .55rem;
+      background: white;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    button:hover { border-color: var(--blue); }
+    button.primary { border-color: var(--blue); background: var(--blue); color: white; }
+    select { min-width: 190px; padding: .55rem; border: 1px solid #b9c8dc; border-radius: .55rem; background: white; }
+    .feedback { min-height: 1.8em; margin: .8rem 0 0; font-weight: 700; }
+    .feedback.ok { color: var(--green); }
+    .feedback.ng { color: #b45309; }
+    .demo-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, .65fr); gap: 20px; align-items: start; margin-top: 1rem; }
+    .demo-header { padding: 14px 18px; border-radius: .8rem; background: #263449; color: white; }
+    .profile-button { display: flex; align-items: center; gap: 10px; padding: .35rem .55rem; border-color: transparent; background: transparent; color: white; }
+    .profile-button img { width: 42px; height: 42px; border-radius: 50%; background: #d9e5fb; object-fit: cover; }
+    .chevron { font-size: 1.3rem; }
+    .demo-menu { margin: 6px 0 0 auto; padding: 8px 0; width: min(250px, 100%); border: 1px solid var(--line); border-radius: .7rem; background: white; box-shadow: 0 14px 30px rgba(25,35,52,.14); color: var(--ink); list-style: none; }
+    .demo-menu li { padding: .35rem 1rem; }
+    .demo-menu li:hover { background: var(--blue-soft); }
+    .hidden { display: none !important; }
+    .state { margin-top: 10px; color: var(--muted); font-size: .9rem; }
+    .answer { display: none; margin-top: .8rem; padding: .8rem 1rem; border-radius: .6rem; background: var(--green-soft); color: #176344; }
+    .answer.open { display: block; }
+    .checklist { padding-left: 1.2rem; }
+    .checklist li { margin: .35rem 0; }
+    .sources { color: var(--muted); font-size: .9rem; }
+    footer { padding: 12px 0 40px; color: var(--muted); text-align: center; font-size: .85rem; }
+    @media (max-width: 700px) {
+      section { padding: 22px 18px; }
+      .hero { padding: 28px 22px; }
+      .grid, .demo-wrap, .mapping { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow span:not(:last-child)::after { content: "↓"; transform: translate(-50%, 25px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">POTEPAN / RAILS / JAVASCRIPT</p>
+      <h1>Stimulusで作る<br>ヘッダードロップダウン入門</h1>
+      <p>アイコン・ユーザー名・矢印のどこをクリックしても、隠れているメニューを表示し、もう一度クリックすると非表示に戻す仕組みを理解する。</p>
+      <div class="goal">今日のゴール：コードを暗記せず、処理の流れを説明できる</div>
+    </header>
+
+    <section>
+      <h2>1. まず概要</h2>
+      <p class="lead">今回の機能は「メニューを新しく作る」機能ではありません。HTMLにすでにあるメニューの、CSSクラスを切り替える機能です。</p>
+      <div class="flow">
+        <span>プロフィールをクリック</span>
+        <span>clickを受け取る</span>
+        <span>ulを見つける</span>
+        <span>hiddenを切り替える</span>
+        <span>表示 / 非表示</span>
+      </div>
+      <div class="grid">
+        <div class="mini-card"><h3>HTML</h3><p>プロフィールのbuttonと、メニューのulを用意する。</p></div>
+        <div class="mini-card"><h3>CSS</h3><p><code>hidden</code>が付いている要素を非表示にする。</p></div>
+        <div class="mini-card"><h3>JavaScript</h3><p>クリックされたら、<code>hidden</code>を付けたり外したりする。</p></div>
+        <div class="mini-card"><h3>Stimulus</h3><p>HTMLとJavaScriptを、Controller・Action・Targetで結び付ける。</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Stimulusを使わない場合から考える</h2>
+      <p>Stimulusを理解するために、まず普通のJavaScriptで考えます。</p>
+      <pre><code>const button = document.querySelector("button")
+const menu = document.querySelector("ul")
+
+button.addEventListener("click", () =&gt; {
+  menu.classList.toggle("hidden")
+})</code></pre>
+      <div class="mapping">
+        <div><code>document.querySelector</code></div><div>HTMLから要素を探す</div>
+        <div><code>addEventListener("click", ...)</code></div><div>クリックを監視する</div>
+        <div><code>classList</code></div><div>要素のclassを扱う</div>
+        <div><code>toggle("hidden")</code></div><div>hiddenを付け外しする</div>
+      </div>
+      <p>StimulusはJavaScriptを別のものにするのではなく、この「要素を探す」「イベントを受け取る」という関係を、HTMLの属性で整理する仕組みです。</p>
+    </section>
+
+    <section>
+      <h2>3. Stimulusの3つの部品</h2>
+      <div class="grid">
+        <div class="mini-card"><h3><span class="tag">Controller</span>動作の部品</h3><p>JavaScriptファイルです。今回なら<code>dropdown_controller.js</code>がメニューの動作を担当します。</p></div>
+        <div class="mini-card"><h3><span class="tag">Action</span>イベントとの接続</h3><p>「クリックされたら、このControllerのこのメソッドを呼ぶ」という指定です。</p></div>
+        <div class="mini-card"><h3><span class="tag">Target</span>操作対象</h3><p>Controllerが操作するHTML要素に名前を付けます。今回はメニューの<code>ul</code>です。</p></div>
+        <div class="mini-card"><h3><span class="tag">data-*</span>HTML上の目印</h3><p>StimulusはHTMLの<code>data-*</code>属性を読み、JavaScriptとHTMLを結び付けます。</p></div>
+      </div>
+      <pre><code>&lt;div data-controller="dropdown"&gt;
+  &lt;button data-action="click-&gt;dropdown#toggle"&gt;
+    画像・名前・矢印
+  &lt;/button&gt;
+
+  &lt;ul data-dropdown-target="menu" class="hidden"&gt;
+    メニュー項目
+  &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
+      <div class="mapping">
+        <div><code>data-controller="dropdown"</code></div><div>dropdown Controllerを使う</div>
+        <div><code>click-&gt;dropdown#toggle</code></div><div>click時にtoggleを呼ぶ</div>
+        <div><code>data-dropdown-target="menu"</code></div><div>ulをmenuという名前で登録</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. 今のアプリのコードに対応させる</h2>
+      <p>現在のアプリでは、Stimulusの読み込み準備はすでにあります。</p>
+      <ul>
+        <li><code>app/javascript/application.js</code>がControllerを読み込む</li>
+        <li><code>app/javascript/controllers/index.js</code>がControllerを自動読み込みする</li>
+        <li><code>dropdown_controller.js</code>がdropdownの動作を担当する</li>
+        <li>ログイン時だけ<code>_login_header.html.erb</code>が表示される</li>
+      </ul>
+      <pre><code>import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static targets = ["menu"]
+
+  toggle() {
+    this.menuTarget.classList.toggle("hidden")
+  }
+}</code></pre>
+      <h3>このコードを処理の順番で読む</h3>
+      <ol>
+        <li>StimulusのController機能を読み込む。</li>
+        <li>dropdownというControllerを作る。</li>
+        <li>menuというTargetを登録する。</li>
+        <li>クリックで<code>toggle()</code>を呼ぶ。</li>
+        <li><code>this.menuTarget</code>、つまりulを操作する。</li>
+        <li><code>hidden</code>を付け外しする。</li>
+      </ol>
+      <p><code>static targets = ["menu"]</code>は、Stimulusに「このControllerはmenuという操作対象を使います」と登録する設定です。<code>static</code>の細かなJavaScript仕様を、今すぐ暗記する必要はありません。</p>
+    </section>
+
+    <section>
+      <h2>5. その場で試せるミニデモ</h2>
+      <p class="lead">これはあなたのRailsアプリとは別の教材用デモです。クリックの前後で、メニューのclassがどう変わるか観察してください。</p>
+      <div class="demo-wrap">
+        <div>
+          <div class="demo-header">
+            <button type="button" class="profile-button" id="demo-trigger" aria-expanded="false" aria-controls="demo-menu">
+              <img alt="サンプルアバター" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='40' fill='%23dbeafe'/%3E%3Ccircle cx='40' cy='30' r='14' fill='%233b82f6'/%3E%3Cpath d='M16 70c3-17 13-25 24-25s21 8 24 25' fill='%233b82f6'/%3E%3C/svg%3E">
+              <span>サンプルユーザー</span>
+              <span class="chevron">⌄</span>
+            </button>
+          </div>
+          <ul class="demo-menu hidden" id="demo-menu">
+            <li>施設の新規登録</li>
+            <li>予約済み一覧</li>
+            <li>登録済み一覧</li>
+            <li>アカウント設定</li>
+          </ul>
+          <p class="state">現在のclass：<code id="demo-state">hidden</code></p>
+        </div>
+        <div class="mini-card">
+          <h3>観察ポイント</h3>
+          <p>1回目のクリックで<code>hidden</code>が消え、2回目で戻ります。</p>
+          <p>画像・名前・矢印のどこを押してもbuttonのクリックとして扱われます。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>6. 演習問題</h2>
+
+      <div class="exercise">
+        <h3>演習1：buttonとリンクの使い分け</h3>
+        <p>プロフィール部分をクリックすると「同じページ内のメニューが開く」場合、適切な要素はどれですか？</p>
+        <button type="button" class="answer-choice" data-answer="wrong">a要素</button>
+        <button type="button" class="answer-choice" data-answer="correct">button要素</button>
+        <button type="button" class="answer-choice" data-answer="wrong">span要素</button>
+        <p class="feedback" id="feedback-1"></p>
+      </div>
+
+      <div class="exercise">
+        <h3>演習2：Stimulusの対応関係</h3>
+        <p><code>data-action="click-&gt;dropdown#toggle"</code>の<code>toggle</code>は何を表していますか？</p>
+        <select id="quiz-2">
+          <option value="">選択してください</option>
+          <option value="wrong">操作対象のHTML要素名</option>
+          <option value="correct">クリック時に呼び出すメソッド名</option>
+          <option value="wrong">CSSクラス名</option>
+        </select>
+        <button type="button" class="primary" id="check-2">回答する</button>
+        <p class="feedback" id="feedback-2"></p>
+      </div>
+
+      <div class="exercise">
+        <h3>演習3：classListの予測</h3>
+        <p>初期状態が<code>&lt;ul class="hidden"&gt;</code>です。<code>classList.toggle("hidden")</code>を2回実行した後、hiddenはどうなりますか？</p>
+        <button type="button" class="answer-choice" data-answer="wrong">2回とも消える</button>
+        <button type="button" class="answer-choice" data-answer="correct">元に戻って付いている</button>
+        <button type="button" class="answer-choice" data-answer="wrong">class自体がなくなる</button>
+        <p class="feedback" id="feedback-3"></p>
+      </div>
+
+      <div class="exercise">
+        <h3>演習4：コードの間違いを探す</h3>
+        <pre><code>&lt;div class="data-controller=dropdown"&gt;
+  &lt;button&gt;プロフィール&lt;/button&gt;
+  &lt;ul data-dropdown-target="menu" class="hidden"&gt;...&lt;/ul&gt;
+&lt;/div&gt;</code></pre>
+        <p>このコードの問題点を2つ考えてから、答えを開いてください。</p>
+        <button type="button" class="primary reveal" data-target="answer-4">答えを表示</button>
+        <div class="answer" id="answer-4">① <code>data-controller</code>がclass属性の中に入っている。② buttonにクリック時のActionがない。なお、TargetのulがControllerの範囲内にある点は正しいです。</div>
+      </div>
+
+      <div class="exercise">
+        <h3>演習5：実装前の説明練習</h3>
+        <p>次の3つを自分の言葉で説明してみてください。</p>
+        <ol>
+          <li><code>data-controller="dropdown"</code></li>
+          <li><code>data-action="click-&gt;dropdown#toggle"</code></li>
+          <li><code>this.menuTarget.classList.toggle("hidden")</code></li>
+        </ol>
+        <button type="button" class="reveal" data-target="answer-5">説明例を表示</button>
+        <div class="answer" id="answer-5">①この範囲でdropdown Controllerを使う。②クリック時にdropdown Controllerのtoggleメソッドを呼ぶ。③操作対象のメニューのhiddenクラスを付け外しする。</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>7. 実装するときの確認チェックリスト</h2>
+      <ul class="checklist">
+        <li>Controllerファイル名が<code>dropdown_controller.js</code>になっている</li>
+        <li>HTMLに<code>data-controller="dropdown"</code>がある</li>
+        <li>クリック対象に<code>data-action="click-&gt;dropdown#toggle"</code>がある</li>
+        <li>メニューのulに<code>data-dropdown-target="menu"</code>がある</li>
+        <li>TargetのulがControllerの範囲内にある</li>
+        <li>メニューの初期classに<code>hidden</code>がある</li>
+        <li>ログイン状態で<code>_login_header.html.erb</code>が表示されている</li>
+        <li>1回目で表示、2回目で非表示になる</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. 用語メモ</h2>
+      <div class="mapping">
+        <div><strong>DOM</strong></div><div>ブラウザがHTMLを扱いやすい形にしたもの</div>
+        <div><strong>イベント</strong></div><div>クリック・入力・送信など、ブラウザで起きた出来事</div>
+        <div><strong>classList</strong></div><div>HTML要素に付いたclassをJavaScriptから扱う窓口</div>
+        <div><strong>toggle</strong></div><div>あれば外し、なければ付ける切り替え</div>
+        <div><strong>Controller</strong></div><div>Stimulusで動作を担当するJavaScriptの部品</div>
+        <div><strong>Target</strong></div><div>Controllerが操作するHTML要素</div>
+        <div><strong>Action</strong></div><div>イベントとメソッドを結び付ける指定</div>
+      </div>
+      <p class="sources">参考：<a href="https://stimulus.hotwired.dev/handbook/introduction" target="_blank" rel="noreferrer">Stimulus Handbook</a> / <a href="https://stimulus.hotwired.dev/reference/actions" target="_blank" rel="noreferrer">Stimulus Actions</a> / <a href="https://stimulus.hotwired.dev/reference/targets" target="_blank" rel="noreferrer">Stimulus Targets</a> / <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/classList" target="_blank" rel="noreferrer">MDN classList</a></p>
+    </section>
+  </main>
+  <footer>Stimulusドロップダウン復習教材</footer>
+
+  <script>
+    const demoTrigger = document.querySelector("#demo-trigger")
+    const demoMenu = document.querySelector("#demo-menu")
+    const demoState = document.querySelector("#demo-state")
+
+    demoTrigger.addEventListener("click", () => {
+      demoMenu.classList.toggle("hidden")
+      demoTrigger.setAttribute("aria-expanded", String(!demoMenu.classList.contains("hidden")))
+      demoState.textContent = demoMenu.classList.contains("hidden") ? "hidden" : "(hiddenなし)"
+    })
+
+    document.querySelectorAll(".answer-choice").forEach((choice) => {
+      choice.addEventListener("click", () => {
+        const feedback = choice.closest(".exercise").querySelector(".feedback")
+        const correct = choice.dataset.answer === "correct"
+        feedback.textContent = correct ? "正解です。" : "今回は違います。もう一度、役割を考えてみましょう。"
+        feedback.className = `feedback ${correct ? "ok" : "ng"}`
+      })
+    })
+
+    document.querySelector("#check-2").addEventListener("click", () => {
+      const feedback = document.querySelector("#feedback-2")
+      const correct = document.querySelector("#quiz-2").value === "correct"
+      feedback.textContent = correct ? "正解です。toggleはメソッド名です。" : "選択肢を見直してみましょう。"
+      feedback.className = `feedback ${correct ? "ok" : "ng"}`
+    })
+
+    document.querySelectorAll(".reveal").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelector(`#${button.dataset.target}`).classList.toggle("open")
+        button.textContent = button.textContent.includes("表示") ? "答えを隠す" : "答えを表示"
+      })
+    })
+  </script>
+</body>
+</html>

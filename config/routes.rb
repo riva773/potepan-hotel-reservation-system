@@ -1,4 +1,14 @@
 Rails.application.routes.draw do
+  get "users/account", to: "users#account"
+  get "users/profile", to: "users#profile"
+  get "users/profile/edit", to: "users#edit", as: :edit_users_profile
+  patch "users/profile/update", to: "users#update", as: :update_users_profile
+  get "rooms/own", to: "rooms#own"
+  resources :rooms
+  resources :reservations, only: [ :index, :update, :destroy, :edit, :create ]
+  devise_for :users
+  root "pages#home"
+  post "reservations/confirm", to: "reservations#confirm"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

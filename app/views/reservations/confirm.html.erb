@@ -1,0 +1,35 @@
+
+<div class="w-1/2 mx-auto mt-6 mb-20">
+  <h2 class="mb-4 text-3xl">予約内容の確認</h2>
+  <div class="flex justify-between mb-5">
+    <p>チェックイン</p>
+    <p><%= l(@reservation.check_in, format: :default ) %></p>
+  </div>
+  <div class="flex justify-between mb-5">
+    <p>チェックアウト</p>
+    <p><%= l(@reservation.check_out, format: :default) %></p>
+  </div>
+  <div class="flex justify-between mb-5">
+    <p>日数</p>
+    <p><%= @duration %>日</p>
+  </div>
+  <div class="flex justify-between mb-5">
+    <p>人数</p>
+    <p><%= @reservation.attendance %>人</p>
+  </div>
+  <div class="flex justify-between mb-5">
+    <p>お支払い金額</p>
+    <p>¥<%= @sum_price.to_formatted_s(:delimited) %></p>
+  </div>
+  <p class="mb-8">上記内容で正しければ「確定」ボタンを押してください。</p>
+  <%= form_with model: @reservation do |f| %>
+    <%= f.hidden_field :id, value: @reservation.id %>
+    <%= f.hidden_field :room_id, value: @room.id %>
+    <%= f.hidden_field :check_in, value: @reservation.check_in %>
+    <%= f.hidden_field :check_out, value: @reservation.check_out %>
+    <%= f.hidden_field :attendance, value: @reservation.attendance %>
+    <%= f.submit "予約を確定", class: "w-full inline-block bg-orange-500 text-white text-center font-bold rounded-xl p-4 mb-4 cursor-pointer"%>
+    <%= link_to "キャンセル", @room, class: "w-full border border-gray-300 text-center text-gray-500 p-4 inline-block rounded-xl" %>
+  <% end %>
+
+</div>
