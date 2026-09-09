@@ -12,7 +12,7 @@ rooms = 10.times.map do |i|
     user: user,
     description: "テスト用の施設#{i + 1}です。",
     price: (i + 1) * 1000,
-    address: [ "東京", "大阪", "京都", "札幌" ][i % 4 ]
+    address: [ "東京", "大阪", "京都", "札幌" ][i % 4]
   )
   room.save!
   room
