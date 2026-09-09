@@ -10,8 +10,6 @@ class ReservationsController < ApplicationController
   def create
     @room = Room.find(reservation_params[:room_id])
     @reservation = current_user.reservations.build(reservation_params)
-    @reservation.room = @room
-    @reservation.sum_price = @reservation.room.price * @reservation.attendance * (@reservation.check_out - @reservation.check_in).to_i
     if @reservation.save
       redirect_to reservations_path, notice: "施設の予約が完了しました"
     else
@@ -24,7 +22,6 @@ class ReservationsController < ApplicationController
 
   def update
     @reservation.assign_attributes(update_reservation_params)
-    @reservation.sum_price = @reservation.room.price * @reservation.attendance * (@reservation.check_out - @reservation.check_in).to_i
     if @reservation.save
       redirect_to reservations_path, notice: "予約を更新しました。"
     else
@@ -50,12 +47,8 @@ class ReservationsController < ApplicationController
     else
       @reservation = current_user.reservations.build(reservation_params)
       @room = Room.find(reservation_params[:room_id])
-      @reservation.room = @room
     end
-    if @reservation.check_in.blank? ||
-    @reservation.check_out.blank? ||
-    @reservation.attendance.blank? || @reservation.check_in < Time.zone.today || @reservation.check_in >= @reservation.check_out || @reservation.attendance <= 0
-      @reservation.valid?
+    unless @reservation.valid?
       flash.now[:alert]="予約情報が不足しています。"
       if params[:reservation][:id].present?
         render "edit", status: :unprocessable_entity
@@ -65,10 +58,11 @@ class ReservationsController < ApplicationController
       return
     end
     @duration = (@reservation.check_out - @reservation.check_in).to_i
-    @sum_price = @room.price * @reservation.attendance * @duration
+    @sum_price = @reservation.sum_price
     render :confirm
   end
 
+  private
   def reservation_params
     params.require(:reservation).permit(:check_in, :check_out, :attendance, :room_id)
   end

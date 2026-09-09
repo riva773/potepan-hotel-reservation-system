@@ -6,6 +6,7 @@ class Reservation < ApplicationRecord
   validates :attendance, numericality: { only_integer: true, greater_than: 0 }
   validate :checkout_must_be_after_checkin
   validate :checkin_must_be_after_today
+  before_validation :calculate_sum_price
 
   private
   def checkout_must_be_after_checkin
@@ -20,5 +21,14 @@ class Reservation < ApplicationRecord
     if check_in < Time.zone.today
       errors.add(:check_in, "は、今日以降の日付を選択してください。")
     end
+  end
+
+  def calculate_sum_price
+    return unless room.present?
+    return unless check_in.present?
+    return unless check_out.present?
+    return unless attendance.present?
+
+    self.sum_price = room.price * attendance * (check_out - check_in).to_i
   end
 end

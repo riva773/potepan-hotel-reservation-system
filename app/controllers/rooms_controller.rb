@@ -55,6 +55,7 @@ class RoomsController < ApplicationController
     @rooms = current_user.rooms.with_attached_avatar
   end
 
+  private
   def room_params
     params.require(:room).permit(:name, :price, :address, :description, :avatar)
   end
