@@ -37,7 +37,7 @@ gem "devise"
 
 gem "rails-i18n"
 
-gem 'active_storage_validations'
+gem "active_storage_validations"
 
 
 group :development, :test do
